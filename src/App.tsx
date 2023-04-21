@@ -6,7 +6,7 @@ function App() {
   return (
     <>
       <div>
-        <Mathfield className="Name" />
+        <Mathfield className="math-input" />
       </div>
     </>
   );
