@@ -1,15 +1,22 @@
-import "./App.css";
+import { Component, createEffect, createSignal } from "solid-js";
+import styles from "./App.module.css";
 
-import { Mathfield } from "./components/Input";
+import MathInput from "./Math/MathInput";
+import MathDisplay from "./Math/MathDisplay";
 
-function App() {
+const App: Component = () => {
+  const [expr, setExpr] = createSignal("Hello");
+
   return (
     <>
-      <div>
-        <Mathfield className="math-input" />
+      <div class={styles.App}>
+        <MathInput setExpr={setExpr} />
+      </div>
+      <div class={styles.App}>
+        <MathDisplay value={expr} />
       </div>
     </>
   );
-}
+};
 
 export default App;

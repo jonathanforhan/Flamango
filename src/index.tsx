@@ -1,18 +1,15 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./App.tsx";
-import "./index.css";
+/* @refresh reload */
+import { render } from 'solid-js/web';
 
-import { DOMAttributes } from "react";
-import { MathfieldElementAttributes } from "mathlive";
+import './index.css';
+import App from './App';
 
-type CustomElement<T> = Partial<T & DOMAttributes<T>>;
-export interface IntrinsicElements {
-  ["math-field"]: CustomElement<MathfieldElementAttributes>;
+const root = document.getElementById('root');
+
+if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
+  throw new Error(
+    'Root element not found. Did you forget to add it to your index.html? Or maybe the id attribute got mispelled?',
+  );
 }
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+render(() => <App />, root!);
