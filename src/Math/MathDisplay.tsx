@@ -1,4 +1,4 @@
-import { Accessor, Component, createEffect, createSignal } from "solid-js";
+import { Accessor, Component, For } from "solid-js";
 
 declare module "solid-js" {
   namespace JSX {
@@ -9,29 +9,32 @@ declare module "solid-js" {
 }
 
 export type MathDisplayProps = {
-  value: Accessor<string>;
+  class?: string;
+  value: Accessor<string[]>;
 };
 
 export type MathDisplayNode = HTMLDivElement & { value?: string };
 
+/**
+ * MathDisplay using read-only math-field from mathlive
+ */
 const MathDisplay: Component<MathDisplayProps> = (props) => {
-  const [output, setOutput] = createSignal(<></>);
-
-  createEffect(() => {
-    props.value();
-    setOutput(
-      <>
-        <math-field
-          style={{ width: "20em", fontSize: "1.5em" }}
-          read-only={true}
-        >
-          {props.value}
-        </math-field>
-      </>
-    );
-  });
-
-  return <>{output()}</>;
+  return (
+    <For each={props.value()}>
+      {(x) => {
+        return (
+          <div class={props.class}>
+            <math-field
+              style={{ width: "20em", fontSize: "1.5em" }}
+              read-only={true}
+            >
+              {x}
+            </math-field>
+          </div>
+        );
+      }}
+    </For>
+  );
 };
 
 export default MathDisplay;
