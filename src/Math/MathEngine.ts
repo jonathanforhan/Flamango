@@ -26,23 +26,45 @@ class MathEngine extends ComputeEngine {
       this._recurseMathNodes(expr[1] as MathJSON[], this.opLeft);
       this._recurseMathNodes(expr[2] as MathJSON[], this.opRight);
     }
-    console.log("left", this.opLeft);
-    console.log("right", this.opRight);
 
     let result: MathJSON[] = [];
     if (input) {
       const expr = input as Expression[];
       if (expr[0] == "Equal") {
-        result = this._evalMathNodes(expr[1], expr[2]);
+        result = this._evalMathNodes(
+          expr[1],
+          expr[2],
+          this.opLeft,
+          this.opRight
+        );
       }
     }
 
+    // only include isolated variables
+    result = result.filter((x) => {
+      const expr = x as MathJSON[];
+      if (expr && !(expr[1] instanceof Array && expr[2] instanceof Array)) {
+        return x;
+      } else if (
+        (expr[1] as Expression[]).length < 3 ||
+        (expr[2] as Expression[]).length < 3
+      ) {
+        return x;
+      }
+    });
+
     return result.map((eq) => {
       const expr = eq as MathJSON[];
+      // isolate left side
       if (expr && expr[1] instanceof Array) {
         var tmp = expr[1];
         expr[1] = expr[2];
         expr[2] = tmp;
+      }
+      // make left side never negative
+      if (expr && expr[1] instanceof Array && expr[1][0] == "Negate") {
+        expr[1] = expr[1][1];
+        expr[2] = ["Negate", expr[2] as Expression];
       }
       return super.box(eq as Expression).simplify().latex;
     });
@@ -64,15 +86,52 @@ class MathEngine extends ComputeEngine {
     }
   }
 
-  _evalMathNodes(left: Expression, right: Expression): MathJSON[] {
+  _evalMathNodes(
+    left: Expression,
+    right: Expression,
+    opLeft: string[],
+    opRight: string[]
+  ): MathJSON[] {
     let result: MathJSON[] = [];
 
     if (left instanceof Array) {
-      switch (this.opLeft[0]) {
+      switch (opLeft[0]) {
         case "Add": {
           result.push(...this._addOps(right, left));
-          this.opLeft = this.opLeft.slice(1);
+          opLeft = opLeft.slice(1);
+          result.forEach((expr) => {
+            const x = expr as MathJSON[];
+            if (x[1] instanceof Array && x[2] instanceof Array) {
+              const ret = this._evalMathNodes(
+                x[1] as Expression,
+                x[2] as Expression,
+                opLeft,
+                opRight
+              );
+              result.push(...ret);
+            }
+          });
           break;
+        }
+        case "Multiply": {
+          result.push(...this._mulOps(right, left));
+          opLeft = opLeft.slice(1);
+          result.forEach((expr) => {
+            const x = expr as MathJSON[];
+            if (x[1] instanceof Array && x[2] instanceof Array) {
+              const ret = this._evalMathNodes(
+                x[1] as Expression,
+                x[2] as Expression,
+                opLeft,
+                opRight
+              );
+              result.push(...ret);
+            }
+          });
+          break;
+        }
+        default: {
+          opLeft = opLeft.slice(1);
         }
       }
     } else {
@@ -80,11 +139,43 @@ class MathEngine extends ComputeEngine {
     }
 
     if (right instanceof Array) {
-      switch (this.opRight[0]) {
+      switch (opRight[0]) {
         case "Add": {
           result.push(...this._addOps(left, right));
-          this.opRight = this.opRight.slice(1);
+          opRight = opRight.slice(1);
+          result.forEach((expr) => {
+            const x = expr as MathJSON[];
+            if (x[1] instanceof Array && x[2] instanceof Array) {
+              const ret = this._evalMathNodes(
+                x[1] as Expression,
+                x[2] as Expression,
+                opLeft,
+                opRight
+              );
+              result.push(...ret);
+            }
+          });
           break;
+        }
+        case "Multiply": {
+          result.push(...this._mulOps(left, right));
+          opRight = opRight.slice(1);
+          result.forEach((expr) => {
+            const x = expr as MathJSON[];
+            if (x[1] instanceof Array && x[2] instanceof Array) {
+              const ret = this._evalMathNodes(
+                x[1] as Expression,
+                x[2] as Expression,
+                opLeft,
+                opRight
+              );
+              result.push(...ret);
+            }
+          });
+          break;
+        }
+        default: {
+          opRight = opRight.slice(1);
         }
       }
     } else {
@@ -102,7 +193,7 @@ class MathEngine extends ComputeEngine {
 
     // Make a singlet like 'x' become an add operation
     // ['Add', 'x']
-    if (!(primary instanceof Array)) {
+    if (!(primary instanceof Array) || primary[0] !== "Add") {
       primary = ["Add", primary as Expression];
     }
 
@@ -122,6 +213,38 @@ class MathEngine extends ComputeEngine {
 
     // simplify answer to get rid of the double negations
     // a + (-b) = b + c + (-b) -> c = -b + a
+    return this._simplify(result);
+  }
+
+  /**
+   * Handles mulitplication operations, isolates each component of
+   * the multiply operation
+   */
+  _mulOps(primary: MathJSON, secondary: MathJSON[]): MathJSON[] {
+    let result: MathJSON[] = [];
+
+    // Make a singlet like 'x' become an add operation
+    // ['Multiply', 'x']
+    if (!(primary instanceof Array) || primary[0] !== "Multiply") {
+      primary = ["Multiply", primary as Expression];
+    }
+
+    // Add the negative of the accompanying addition term, for example
+    // a = bc -> a * 1/b = bc * 1/b
+    for (let i = 1; i < secondary.length; i++) {
+      const negator = secondary.filter((_, index) => {
+        return index !== 0 && index !== i;
+      });
+
+      result.push([
+        "Equal",
+        [...primary, ["Divide", 1, ...negator]],
+        [...secondary, ["Divide", 1, ...negator]],
+      ] as MathJSON);
+    }
+
+    // simplify answer to get rid of the double negations
+    // a * 1/b = b * c * 1/b -> c = a / b
     return this._simplify(result);
   }
 }
