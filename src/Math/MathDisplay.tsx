@@ -1,4 +1,5 @@
 import { Accessor, Component, For } from "solid-js";
+import { MathJSON } from "./MathEngine";
 
 declare module "solid-js" {
   namespace JSX {
@@ -10,7 +11,7 @@ declare module "solid-js" {
 
 export type MathDisplayProps = {
   class?: string;
-  value: Accessor<string[]>;
+  items: Accessor<MathJSON[]>;
 };
 
 export type MathDisplayNode = HTMLDivElement & { value?: string };
@@ -20,7 +21,7 @@ export type MathDisplayNode = HTMLDivElement & { value?: string };
  */
 const MathDisplay: Component<MathDisplayProps> = (props) => {
   return (
-    <For each={props.value()}>
+    <For each={props.items()}>
       {(x) => {
         return (
           <div class={props.class}>

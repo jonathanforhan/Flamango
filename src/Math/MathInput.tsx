@@ -1,6 +1,5 @@
-import { Component, createEffect, createSignal, Setter } from "solid-js";
-
-import { ComputeEngine } from "@cortex-js/compute-engine";
+import { Component, createEffect, Setter } from "solid-js";
+import MathEngine, { MathJSON } from "./MathEngine";
 
 declare module "solid-js" {
   namespace JSX {
@@ -15,7 +14,7 @@ declare var mathVirtualKeyboard: { layouts: string[] };
 export type MathInputProps = {
   class?: string;
   children?: Node;
-  setExpr: Setter<string[]>;
+  setInput: Setter<MathJSON>;
 };
 
 export type MathNode = HTMLDivElement & { value?: string };
@@ -24,21 +23,19 @@ export type MathNode = HTMLDivElement & { value?: string };
  * MathInput using math-field from mathlive
  */
 const MathInput: Component<MathInputProps> = (props) => {
-  const [mathJSON, setMathJSON] = createSignal(null);
-
-  const ce = new ComputeEngine();
+  const mathEngine = new MathEngine();
   let ref: MathNode = undefined as unknown as HTMLDivElement;
 
   createEffect(() => {
-    mathVirtualKeyboard.layouts = ["numeric", "alphabetic", "greek"]; // eslint-disable
+    mathVirtualKeyboard.layouts = ["numeric", "alphabetic", "greek"];
 
     ref?.addEventListener("input", () => {
-      if (ref.value) {
-        const data = ce.parse(ref.value, { canonical: false });
-        props.setExpr([ce.box(data.json).latex, "\\frac{1}{2}", "1+2=3"]);
-      } else {
-        props.setExpr([]);
+      if (!ref.value) {
+        return props.setInput(null);
       }
+
+      const data = mathEngine.parse(ref.value, { canonical: false });
+      props.setInput(data.json as MathJSON);
     });
   });
 
