@@ -26,6 +26,7 @@ const MathInput: Component<MathInputProps> = (props) => {
   const mathEngine = new MathEngine();
   let ref: MathNode = undefined as unknown as HTMLDivElement;
 
+  // Initialize keyboard
   createEffect(() => {
     mathVirtualKeyboard.layouts = ["numeric", "alphabetic", "greek"];
 

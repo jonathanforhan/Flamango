@@ -3,9 +3,15 @@ import { Expression } from "@cortex-js/compute-engine/dist/types/math-json/math-
 
 export type MathJSON = Expression | Expression[] | null;
 
+/**
+ * Used to compute all math equations
+ */
 class MathEngine extends ComputeEngine {
-  private opLeft: string[] = [];
-  private opRight: string[] = [];
+  // list of operations done in equation, useful for reversing their order
+  private _opList: { left: string[]; right: string[] } = {
+    left: [],
+    right: [],
+  };
 
   constructor() {
     super();
@@ -14,172 +20,120 @@ class MathEngine extends ComputeEngine {
     };
   }
 
-  TEST_INPUT(input: MathJSON): MathJSON[] /* TODO DELETE */ {
+  /**
+   * TODO TESTING DELETE LATER
+   */
+  TEST_INPUT(input: MathJSON): MathJSON[] {
     console.log(JSON.stringify(input));
     return input ? [super.box(input).latex] : [];
   }
 
+  /**
+   * Generates all deduced equations from MathInput
+   */
   createEquations(input: MathJSON): MathJSON[] {
-    [this.opLeft, this.opRight] = [[], []];
-    if (input) {
-      const expr = input as Expression[];
-      this._recurseMathNodes(expr[1] as MathJSON[], this.opLeft);
-      this._recurseMathNodes(expr[2] as MathJSON[], this.opRight);
-    }
+    if (!input) return []; // assert(!null)
+    else input = input as Expression[];
+    if (input[0] !== "Equal") return [];
 
-    let result: MathJSON[] = [];
-    if (input) {
-      const expr = input as Expression[];
-      if (expr[0] == "Equal") {
-        result = this._evalMathNodes(
-          expr[1],
-          expr[2],
-          this.opLeft,
-          this.opRight
-        );
-      }
-    }
+    this._opList = { left: [], right: [] };
+    this._concatOpList(input[1], this._opList.left);
+    this._concatOpList(input[2], this._opList.right);
+
+    let result: MathJSON[] = this._evalNodes(input[1], input[2]);
 
     // only include isolated variables
-    result = result.filter((x) => {
-      const expr = x as MathJSON[];
-      if (expr && !(expr[1] instanceof Array && expr[2] instanceof Array)) {
-        return x;
-      } else if (
-        (expr[1] as Expression[]).length < 3 ||
-        (expr[2] as Expression[]).length < 3
+    result = result.filter((expr) => {
+      const x = expr as Expression[][];
+      if (
+        (x && !(x[1] instanceof Array && x[2] instanceof Array)) ||
+        x[1].length < 3 ||
+        x[2].length < 3
       ) {
         return x;
       }
     });
 
-    return result.map((eq) => {
-      const expr = eq as MathJSON[];
+    return result.map((expr) => {
+      const x = expr as Expression[];
       // isolate left side
-      if (expr && expr[1] instanceof Array) {
-        var tmp = expr[1];
-        expr[1] = expr[2];
-        expr[2] = tmp;
+      if (x && x[1] instanceof Array) {
+        [x[1], x[2]] = [x[2], x[1]]; // E6 swap
       }
       // make left side never negative
-      if (expr && expr[1] instanceof Array && expr[1][0] == "Negate") {
-        expr[1] = expr[1][1];
-        expr[2] = ["Negate", expr[2] as Expression];
+      if (x && x[1] instanceof Array && x[1][0] == "Negate") {
+        x[1] = x[1][1];
+        x[2] = ["Negate", x[2]];
       }
-      return super.box(eq as Expression).simplify().latex;
+      return super.box(x).simplify().latex;
     });
   }
 
-  _simplify(json: MathJSON[]) {
-    return json.map((eq) => {
-      return super.box(eq as Expression).simplify().json;
-    });
+  /**
+   * Simplilfies equations useful for discarding double negatives
+   */
+  _simplify(expr: Expression[]) {
+    return expr.map((x) => super.box(x).simplify().json);
   }
 
-  _recurseMathNodes(input: MathJSON[], store: string[]) {
-    if (!input || !(input instanceof Array)) return;
-    store.push(input[0] as string);
-    for (let i = 1; i < input.length; i++) {
-      if (input[i] instanceof Array) {
-        this._recurseMathNodes(input[i] as MathJSON[], store);
-      }
-    }
+  /**
+   * Concats operations to operation list
+   */
+  _concatOpList(input: Expression, opList: string[]) {
+    if (!(input instanceof Array)) return;
+
+    opList.push(input[0] as string);
+    // Add operations recursively, the non-Arrays will be filtered by guard
+    input.forEach((x) => this._concatOpList(x, opList));
   }
 
-  _evalMathNodes(
-    left: Expression,
-    right: Expression,
-    opLeft: string[],
-    opRight: string[]
-  ): MathJSON[] {
-    let result: MathJSON[] = [];
+  /**
+   * Evaluate a node of the MathJSON tree
+   */
+  _evalNodes(alpha: Expression, beta: Expression): Expression[] {
+    let result: Expression[] = [];
 
-    if (left instanceof Array) {
-      switch (opLeft[0]) {
-        case "Add": {
-          result.push(...this._addOps(right, left));
-          opLeft = opLeft.slice(1);
-          result.forEach((expr) => {
-            const x = expr as MathJSON[];
-            if (x[1] instanceof Array && x[2] instanceof Array) {
-              const ret = this._evalMathNodes(
-                x[1] as Expression,
-                x[2] as Expression,
-                opLeft,
-                opRight
-              );
-              result.push(...ret);
-            }
-          });
+    const recurse = (expr: Expression) => {
+      const x = expr as Expression[];
+      if (x[1] instanceof Array && x[2] instanceof Array) {
+        result.push(...this._evalNodes(x[1], x[2]));
+      }
+    };
+
+    if (alpha instanceof Array) {
+      const op = this._opList.left[0];
+      this._opList.left = this._opList.left.slice(1);
+
+      switch (op) {
+        case "Add":
+          result.push(...this._addOps(beta, alpha));
+          result.forEach(recurse);
           break;
-        }
-        case "Multiply": {
-          result.push(...this._mulOps(right, left));
-          opLeft = opLeft.slice(1);
-          result.forEach((expr) => {
-            const x = expr as MathJSON[];
-            if (x[1] instanceof Array && x[2] instanceof Array) {
-              const ret = this._evalMathNodes(
-                x[1] as Expression,
-                x[2] as Expression,
-                opLeft,
-                opRight
-              );
-              result.push(...ret);
-            }
-          });
+        case "Multiply":
+          result.push(...this._mulOps(beta, alpha));
+          result.forEach(recurse);
           break;
-        }
-        default: {
-          opLeft = opLeft.slice(1);
-        }
       }
     } else {
-      result.push(["Equal", left, right]);
+      result.push(["Equal", alpha, beta]);
     }
 
-    if (right instanceof Array) {
-      switch (opRight[0]) {
-        case "Add": {
-          result.push(...this._addOps(left, right));
-          opRight = opRight.slice(1);
-          result.forEach((expr) => {
-            const x = expr as MathJSON[];
-            if (x[1] instanceof Array && x[2] instanceof Array) {
-              const ret = this._evalMathNodes(
-                x[1] as Expression,
-                x[2] as Expression,
-                opLeft,
-                opRight
-              );
-              result.push(...ret);
-            }
-          });
+    if (beta instanceof Array) {
+      const op = this._opList.right[0];
+      this._opList.right = this._opList.right.slice(1);
+
+      switch (op) {
+        case "Add":
+          result.push(...this._addOps(alpha, beta));
+          result.forEach(recurse);
           break;
-        }
-        case "Multiply": {
-          result.push(...this._mulOps(left, right));
-          opRight = opRight.slice(1);
-          result.forEach((expr) => {
-            const x = expr as MathJSON[];
-            if (x[1] instanceof Array && x[2] instanceof Array) {
-              const ret = this._evalMathNodes(
-                x[1] as Expression,
-                x[2] as Expression,
-                opLeft,
-                opRight
-              );
-              result.push(...ret);
-            }
-          });
+        case "Multiply":
+          result.push(...this._mulOps(alpha, beta));
+          result.forEach(recurse);
           break;
-        }
-        default: {
-          opRight = opRight.slice(1);
-        }
       }
     } else {
-      result.push(["Equal", right, left]);
+      result.push(["Equal", beta, alpha]);
     }
 
     return this._simplify(result);
@@ -188,27 +142,25 @@ class MathEngine extends ComputeEngine {
   /**
    * Handles add operations, isolates each component of the add operation
    */
-  _addOps(primary: MathJSON, secondary: MathJSON[]): MathJSON[] {
-    let result: MathJSON[] = [];
+  _addOps(alpha: Expression, beta: Expression[]): Expression[] {
+    let result: Expression[] = [];
 
     // Make a singlet like 'x' become an add operation
     // ['Add', 'x']
-    if (!(primary instanceof Array) || primary[0] !== "Add") {
-      primary = ["Add", primary as Expression];
+    if (!(alpha instanceof Array) || alpha[0] !== "Add") {
+      alpha = ["Add", alpha as Expression];
     }
 
     // Add the negative of the accompanying addition term, for example
     // a = b + c -> a + (-b) = b + c + (-b)
-    for (let i = 1; i < secondary.length; i++) {
-      const negator = secondary.filter((_, index) => {
-        return index !== 0 && index !== i;
-      });
+    for (let i = 1; i < beta.length; i++) {
+      const neg = beta.filter((_, index) => index !== 0 && index !== i);
 
       result.push([
         "Equal",
-        [...primary, ["Negate", ...negator]],
-        [...secondary, ["Negate", ...negator]],
-      ] as MathJSON);
+        [...alpha, ["Negate", ...neg]],
+        [...beta, ["Negate", ...neg]],
+      ] as Expression);
     }
 
     // simplify answer to get rid of the double negations
@@ -220,27 +172,27 @@ class MathEngine extends ComputeEngine {
    * Handles mulitplication operations, isolates each component of
    * the multiply operation
    */
-  _mulOps(primary: MathJSON, secondary: MathJSON[]): MathJSON[] {
-    let result: MathJSON[] = [];
+  _mulOps(alpha: Expression, beta: Expression[]): Expression[] {
+    let result: Expression[] = [];
 
     // Make a singlet like 'x' become an add operation
     // ['Multiply', 'x']
-    if (!(primary instanceof Array) || primary[0] !== "Multiply") {
-      primary = ["Multiply", primary as Expression];
+    if (!(alpha instanceof Array) || alpha[0] !== "Multiply") {
+      alpha = ["Multiply", alpha as Expression];
     }
 
     // Add the negative of the accompanying addition term, for example
     // a = bc -> a * 1/b = bc * 1/b
-    for (let i = 1; i < secondary.length; i++) {
-      const negator = secondary.filter((_, index) => {
+    for (let i = 1; i < beta.length; i++) {
+      const negator = beta.filter((_, index) => {
         return index !== 0 && index !== i;
       });
 
       result.push([
         "Equal",
-        [...primary, ["Divide", 1, ...negator]],
-        [...secondary, ["Divide", 1, ...negator]],
-      ] as MathJSON);
+        [...alpha, ["Divide", 1, ...negator]],
+        [...beta, ["Divide", 1, ...negator]],
+      ] as Expression);
     }
 
     // simplify answer to get rid of the double negations
