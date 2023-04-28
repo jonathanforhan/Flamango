@@ -43,28 +43,28 @@ class MathEngine extends ComputeEngine {
     let result: MathJSON[] = this._evalNodes(input[1], input[2]);
 
     // only include isolated variables
-    result = result.filter((expr) => {
-      const x = expr as Expression[][];
-      if (
-        (x && !(x[1] instanceof Array && x[2] instanceof Array)) ||
-        x[1].length < 3 ||
-        x[2].length < 3
-      ) {
-        return x;
-      }
-    });
+    // result = result.filter((expr) => {
+    //   const x = expr as Expression[][];
+    //   if (
+    //     (x && !(x[1] instanceof Array && x[2] instanceof Array)) ||
+    //     x[1].length < 3 ||
+    //     x[2].length < 3
+    //   ) {
+    //     return x;
+    //   }
+    // });
 
     return result.map((expr) => {
       const x = expr as Expression[];
-      // isolate left side
-      if (x && x[1] instanceof Array) {
-        [x[1], x[2]] = [x[2], x[1]]; // E6 swap
-      }
-      // make left side never negative
-      if (x && x[1] instanceof Array && x[1][0] == "Negate") {
-        x[1] = x[1][1];
-        x[2] = ["Negate", x[2]];
-      }
+      // // isolate left side
+      // if (x && x[1] instanceof Array) {
+      //   [x[1], x[2]] = [x[2], x[1]]; // E6 swap
+      // }
+      // // make left side never negative
+      // if (x && x[1] instanceof Array && x[1][0] == "Negate") {
+      //   x[1] = x[1][1];
+      //   x[2] = ["Negate", x[2]];
+      // }
       return super.box(x).simplify().latex;
     });
   }
@@ -93,13 +93,21 @@ class MathEngine extends ComputeEngine {
   _evalNodes(alpha: Expression, beta: Expression): Expression[] {
     let result: Expression[] = [];
 
+    // Recursion call back implimented when side not isolated,
+    // calls on eval nodes again to further split node
     const recurse = (expr: Expression) => {
+      // NOTE may need to do more checks as we impliment delimiters TODO
       const x = expr as Expression[];
-      if (x[1] instanceof Array && x[2] instanceof Array) {
+      if (
+        x[1] instanceof Array &&
+        x[2] instanceof Array &&
+        !(x[1][0] !== "Negate" || x[2][0] !== "Negate")
+      ) {
         result.push(...this._evalNodes(x[1], x[2]));
       }
     };
 
+    // Evaluate 'Alpha' side of equation
     if (alpha instanceof Array) {
       const op = this._opList.left[0];
       this._opList.left = this._opList.left.slice(1);
@@ -118,6 +126,7 @@ class MathEngine extends ComputeEngine {
       result.push(["Equal", alpha, beta]);
     }
 
+    // Evaluate 'Beta' side of equation
     if (beta instanceof Array) {
       const op = this._opList.right[0];
       this._opList.right = this._opList.right.slice(1);
@@ -177,10 +186,45 @@ class MathEngine extends ComputeEngine {
   _mulOps(alpha: Expression, beta: Expression[]): Expression[] {
     let result: Expression[] = [];
 
-    // Make a singlet like 'x' become an add operation
+    // Make a singlet like 'x' become an mulitplication operation
     // ['Multiply', 'x']
     if (!(alpha instanceof Array) || alpha[0] !== "Multiply") {
       alpha = ["Multiply", alpha as Expression];
+    }
+
+    // Add the negative of the accompanying addition term, for example
+    // a = bc -> a * 1/b = bc * 1/b
+    for (let i = 1; i < beta.length; i++) {
+      let neg = beta
+        .filter((_, index) => index !== 0 && index !== i)
+        .map((n) => ["Divide", 1, n]);
+
+      result.push([
+        "Equal",
+        [...alpha, ...neg],
+        [...beta, ...neg],
+      ] as Expression);
+    }
+
+    console.log(JSON.stringify(result));
+
+    // simplify answer to get rid of the double negations
+    // a * 1/b = b * c * 1/b -> c = a / b
+    return this._simplify(result);
+  }
+
+  /**
+   * Handles division operations, isolates each component of
+   * the division operation
+   */
+  // TODO
+  _divOps(alpha: Expression, beta: Expression[]): Expression[] {
+    let result: Expression[] = [];
+
+    // Make a singlet like 'x' become a division operation
+    // ['Divide', 'x']
+    if (!(alpha instanceof Array) || alpha[0] !== "Divide") {
+      alpha = ["Divide", alpha as Expression];
     }
 
     // Add the negative of the accompanying addition term, for example
