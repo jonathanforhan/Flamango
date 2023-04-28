@@ -43,28 +43,28 @@ class MathEngine extends ComputeEngine {
     let result: MathJSON[] = this._evalNodes(input[1], input[2]);
 
     // only include isolated variables
-    // result = result.filter((expr) => {
-    //   const x = expr as Expression[][];
-    //   if (
-    //     (x && !(x[1] instanceof Array && x[2] instanceof Array)) ||
-    //     x[1].length < 3 ||
-    //     x[2].length < 3
-    //   ) {
-    //     return x;
-    //   }
-    // });
+    result = result.filter((expr) => {
+      const x = expr as Expression[][];
+      if (
+        (x && !(x[1] instanceof Array && x[2] instanceof Array)) ||
+        x[1].length < 3 ||
+        x[2].length < 3
+      ) {
+        return x;
+      }
+    });
 
     return result.map((expr) => {
       const x = expr as Expression[];
-      // // isolate left side
-      // if (x && x[1] instanceof Array) {
-      //   [x[1], x[2]] = [x[2], x[1]]; // E6 swap
-      // }
-      // // make left side never negative
-      // if (x && x[1] instanceof Array && x[1][0] == "Negate") {
-      //   x[1] = x[1][1];
-      //   x[2] = ["Negate", x[2]];
-      // }
+      // isolate left side
+      if (x && x[1] instanceof Array) {
+        [x[1], x[2]] = [x[2], x[1]]; // E6 swap
+      }
+      // make left side never negative
+      if (x && x[1] instanceof Array && x[1][0] == "Negate") {
+        x[1] = x[1][1];
+        x[2] = ["Negate", x[2]];
+      }
       return super.box(x).simplify().latex;
     });
   }
@@ -96,13 +96,10 @@ class MathEngine extends ComputeEngine {
     // Recursion call back implimented when side not isolated,
     // calls on eval nodes again to further split node
     const recurse = (expr: Expression) => {
-      // NOTE may need to do more checks as we impliment delimiters TODO
       const x = expr as Expression[];
-      if (
-        x[1] instanceof Array &&
-        x[2] instanceof Array &&
-        !(x[1][0] !== "Negate" || x[2][0] !== "Negate")
-      ) {
+      if (x[1] instanceof Array && x[2] instanceof Array) {
+        if (x[1][0] == "Negate") x[1] = x[1][1];
+        if (x[2][0] == "Negate") x[2] = x[2][1];
         result.push(...this._evalNodes(x[1], x[2]));
       }
     };
