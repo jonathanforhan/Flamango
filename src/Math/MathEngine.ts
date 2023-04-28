@@ -154,12 +154,14 @@ class MathEngine extends ComputeEngine {
     // Add the negative of the accompanying addition term, for example
     // a = b + c -> a + (-b) = b + c + (-b)
     for (let i = 1; i < beta.length; i++) {
-      const neg = beta.filter((_, index) => index !== 0 && index !== i);
+      let neg = beta
+        .filter((_, index) => index !== 0 && index !== i)
+        .map((n) => ["Negate", n]);
 
       result.push([
         "Equal",
-        [...alpha, ["Negate", ...neg]],
-        [...beta, ["Negate", ...neg]],
+        [...alpha, ...neg],
+        [...beta, ...neg],
       ] as Expression);
     }
 
@@ -184,14 +186,14 @@ class MathEngine extends ComputeEngine {
     // Add the negative of the accompanying addition term, for example
     // a = bc -> a * 1/b = bc * 1/b
     for (let i = 1; i < beta.length; i++) {
-      const negator = beta.filter((_, index) => {
-        return index !== 0 && index !== i;
-      });
+      let neg = beta
+        .filter((_, index) => index !== 0 && index !== i)
+        .map((n) => ["Divide", 1, n]);
 
       result.push([
         "Equal",
-        [...alpha, ["Divide", 1, ...negator]],
-        [...beta, ["Divide", 1, ...negator]],
+        [...alpha, ...neg],
+        [...beta, ...neg],
       ] as Expression);
     }
 
