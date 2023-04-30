@@ -48,7 +48,7 @@ class MathEngine extends ComputeEngine {
       if (
         (x && !(x[1] instanceof Array && x[2] instanceof Array)) ||
         (x[1].length < 3 && !(x[1][1] instanceof Array)) ||
-        (x[2].length < 3 && !(x[1][1] instanceof Array))
+        (x[2].length < 3 && !(x[2][1] instanceof Array))
       ) {
         return x;
       }
@@ -74,6 +74,23 @@ class MathEngine extends ComputeEngine {
    */
   _simplify(expr: Expression[]) {
     return expr.map((x) => super.box(x).simplify().json);
+  }
+
+  /**
+   * -a = b -> a = -b
+   */
+  _flipNegative(alpha: Expression, beta: Expression): Expression[] {
+
+    if (alpha instanceof Array && alpha[0] == "Negate") {
+      alpha = alpha[1];
+      beta = ["Negate", beta];
+    }
+    else if (beta instanceof Array && beta[0] == "Negate") {
+      beta = beta[1];
+      alpha = ["Negate", alpha];
+    }
+
+    return this._simplify([alpha, beta]);
   }
 
   /**
@@ -104,7 +121,8 @@ class MathEngine extends ComputeEngine {
         x[2] = x[2][1];
       }
       if (x[1] instanceof Array && x[2] instanceof Array) {
-        result.push(...this._evalNodes((expr as Expression[])[1],
+        result.push(...this._evalNodes(
+          (expr as Expression[])[1],
           (expr as Expression[])[2]));
       }
     };
@@ -113,18 +131,23 @@ class MathEngine extends ComputeEngine {
     if (alpha instanceof Array) {
       let op = this._opList.left[0];
       this._opList.left = this._opList.left.slice(1);
-      if (op === "Negate") {
-        op = this._opList.left[0];
-        this._opList.left = this._opList.left.slice(1);
-      }
 
       switch (op) {
+        case "Negate":
+          result.push(["Equal", ...this._flipNegative(alpha, beta)])
+          this._evalNodes(beta, alpha)
+          break;
         case "Add":
           result.push(...this._addOps(beta, alpha));
           result.forEach(recurse);
           break;
         case "Multiply":
           result.push(...this._mulOps(beta, alpha));
+          result.forEach(recurse);
+          break;
+        case "Divide":
+        case "Rational":
+          result.push(...this._divOps(beta, alpha));
           result.forEach(recurse);
           break;
       }
@@ -136,18 +159,23 @@ class MathEngine extends ComputeEngine {
     if (beta instanceof Array) {
       let op = this._opList.right[0];
       this._opList.right = this._opList.right.slice(1);
-      if (op === "Negate") {
-        op = this._opList.right[0];
-        this._opList.right = this._opList.right.slice(1);
-      }
 
       switch (op) {
+        case "Negate":
+          result.push(["Equal", ...this._flipNegative(beta, alpha)])
+          this._evalNodes(alpha, beta)
+          break;
         case "Add":
           result.push(...this._addOps(alpha, beta));
           result.forEach(recurse);
           break;
         case "Multiply":
           result.push(...this._mulOps(alpha, beta));
+          result.forEach(recurse);
+          break;
+        case "Divide":
+        case "Rational":
+          result.push(...this._divOps(alpha, beta));
           result.forEach(recurse);
           break;
       }
@@ -208,17 +236,17 @@ class MathEngine extends ComputeEngine {
       alpha = ["Multiply", alpha as Expression];
     }
 
-    // Add the negative of the accompanying addition term, for example
+    // Multiply the inverse of the accompanying multipl term, for example
     // a = bc -> a * 1/b = bc * 1/b
     for (let i = 1; i < beta.length; i++) {
-      let neg = beta
+      let inv = beta
         .filter((_, index) => index !== 0 && index !== i)
         .map((n) => ["Divide", 1, n]);
 
       result.push([
         "Equal",
-        [...alpha, ...neg],
-        [...beta, ...neg],
+        [...alpha, ...inv],
+        [...beta, ...inv],
       ] as Expression);
     }
 
@@ -231,29 +259,26 @@ class MathEngine extends ComputeEngine {
    * Handles division operations, isolates each component of
    * the division operation
    */
-  // TODO
   _divOps(alpha: Expression, beta: Expression[]): Expression[] {
     let result: Expression[] = [];
 
-    // Make a singlet like 'x' become a division operation
-    // ['Divide', 'x']
-    if (!(alpha instanceof Array) || alpha[0] !== "Divide") {
-      alpha = ["Divide", alpha as Expression];
+    // flip the negative on the one being mulitplied
+    if (beta[0] === "Negate") {
+      beta = beta[1] as Expression[];
+      alpha = ["Negate", alpha];
     }
 
-    // Add the negative of the accompanying addition term, for example
-    // a = bc -> a * 1/b = bc * 1/b
-    for (let i = 1; i < beta.length; i++) {
-      let neg = beta
-        .filter((_, index) => index !== 0 && index !== i)
-        .map((n) => ["Divide", 1, n]);
+    // denominator
+    const dem = beta[2]
 
-      result.push([
-        "Equal",
-        [...alpha, ...neg],
-        [...beta, ...neg],
-      ] as Expression);
-    }
+    // convert the division to an equivolent multiplication problem
+    const eqv = [
+      "Equal",
+      ["Multiply", alpha, dem],
+      ["Multiply", beta, dem],
+    ] as Expression[];
+
+    result.push(...this._mulOps(eqv[2], eqv[1] as Expression[]))
 
     // simplify answer to get rid of the double negations
     // a * 1/b = b * c * 1/b -> c = a / b
