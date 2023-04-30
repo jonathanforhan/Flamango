@@ -47,8 +47,8 @@ class MathEngine extends ComputeEngine {
       const x = expr as Expression[][];
       if (
         (x && !(x[1] instanceof Array && x[2] instanceof Array)) ||
-        x[1].length < 3 ||
-        x[2].length < 3
+        (x[1].length < 3 && !(x[1][1] instanceof Array)) ||
+        (x[2].length < 3 && !(x[1][1] instanceof Array))
       ) {
         return x;
       }
@@ -96,18 +96,27 @@ class MathEngine extends ComputeEngine {
     // Recursion call back implimented when side not isolated,
     // calls on eval nodes again to further split node
     const recurse = (expr: Expression) => {
-      const x = expr as Expression[];
+      const x = JSON.parse(JSON.stringify(expr as Expression[]));
+      while (x[1] instanceof Array && x[1][0] === "Negate") {
+        x[1] = x[1][1];
+      }
+      while (x[2] instanceof Array && x[2][0] === "Negate") {
+        x[2] = x[2][1];
+      }
       if (x[1] instanceof Array && x[2] instanceof Array) {
-        if (x[1][0] == "Negate") x[1] = x[1][1];
-        if (x[2][0] == "Negate") x[2] = x[2][1];
-        result.push(...this._evalNodes(x[1], x[2]));
+        result.push(...this._evalNodes((expr as Expression[])[1],
+          (expr as Expression[])[2]));
       }
     };
 
     // Evaluate 'Alpha' side of equation
     if (alpha instanceof Array) {
-      const op = this._opList.left[0];
+      let op = this._opList.left[0];
       this._opList.left = this._opList.left.slice(1);
+      if (op === "Negate") {
+        op = this._opList.left[0];
+        this._opList.left = this._opList.left.slice(1);
+      }
 
       switch (op) {
         case "Add":
@@ -125,8 +134,12 @@ class MathEngine extends ComputeEngine {
 
     // Evaluate 'Beta' side of equation
     if (beta instanceof Array) {
-      const op = this._opList.right[0];
+      let op = this._opList.right[0];
       this._opList.right = this._opList.right.slice(1);
+      if (op === "Negate") {
+        op = this._opList.right[0];
+        this._opList.right = this._opList.right.slice(1);
+      }
 
       switch (op) {
         case "Add":
@@ -183,6 +196,12 @@ class MathEngine extends ComputeEngine {
   _mulOps(alpha: Expression, beta: Expression[]): Expression[] {
     let result: Expression[] = [];
 
+    // flip the negative on the one being mulitplied
+    if (beta[0] === "Negate") {
+      beta = beta[1] as Expression[];
+      alpha = ["Negate", alpha];
+    }
+
     // Make a singlet like 'x' become an mulitplication operation
     // ['Multiply', 'x']
     if (!(alpha instanceof Array) || alpha[0] !== "Multiply") {
@@ -202,8 +221,6 @@ class MathEngine extends ComputeEngine {
         [...beta, ...neg],
       ] as Expression);
     }
-
-    console.log(JSON.stringify(result));
 
     // simplify answer to get rid of the double negations
     // a * 1/b = b * c * 1/b -> c = a / b
