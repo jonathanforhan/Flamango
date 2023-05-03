@@ -3,16 +3,20 @@ import { Expression } from "@cortex-js/compute-engine/dist/types/math-json/math-
 
 export type MathJSON = Expression | Expression[] | null;
 
-const copy = (x: any) => JSON.parse(JSON.stringify(x));
-
 /**
  * Used to compute all math equations
  */
 class MathEngine extends ComputeEngine {
+  // list of operations done in equation, useful for reversing their order
+  private _opList: { left: string[]; right: string[] } = {
+    left: [],
+    right: [],
+  };
+
   constructor() {
     super();
     super.jsonSerializationOptions = {
-      exclude: ["Square", "Subtract", "Sqrt"],
+      exclude: ["Square", "Subtract"],
     };
   }
 
@@ -32,8 +36,11 @@ class MathEngine extends ComputeEngine {
     else input = input as Expression[];
     if (input[0] !== "Equal") return [];
 
+    this._opList = { left: [], right: [] };
+    this._concatOpList(input[1], this._opList.left);
+    this._concatOpList(input[2], this._opList.right);
+
     let result: MathJSON[] = this._evalNodes(input[1], input[2]);
-    result.push(...this._evalNodes(input[2], input[1]));
 
     // only include isolated variables
     result = result.filter((expr) => {
@@ -47,7 +54,7 @@ class MathEngine extends ComputeEngine {
       }
     });
 
-    result = result.map((expr) => {
+    return result.map((expr) => {
       const x = expr as Expression[];
       // isolate left side
       if (x && x[1] instanceof Array) {
@@ -60,8 +67,6 @@ class MathEngine extends ComputeEngine {
       }
       return super.box(x).simplify().latex;
     });
-
-    return result;
   }
 
   /**
@@ -75,11 +80,28 @@ class MathEngine extends ComputeEngine {
    * -a = b -> a = -b
    */
   _flipNegative(alpha: Expression, beta: Expression): Expression[] {
+
     if (alpha instanceof Array && alpha[0] == "Negate") {
       alpha = alpha[1];
       beta = ["Negate", beta];
     }
+    else if (beta instanceof Array && beta[0] == "Negate") {
+      beta = beta[1];
+      alpha = ["Negate", alpha];
+    }
+
     return this._simplify([alpha, beta]);
+  }
+
+  /**
+   * Concats operations to operation list
+   */
+  _concatOpList(input: Expression, opList: string[]) {
+    if (!(input instanceof Array)) return;
+
+    opList.push(input[0] as string);
+    // Add operations recursively, the non-Arrays will be filtered by guard
+    input.forEach((x) => this._concatOpList(x, opList));
   }
 
   /**
@@ -88,12 +110,17 @@ class MathEngine extends ComputeEngine {
   _evalNodes(alpha: Expression, beta: Expression): Expression[] {
     let result: Expression[] = [];
 
+    // Recursion call back implimented when side not isolated,
+    // calls on eval nodes again to further split node
     const recurse = (expr: Expression) => {
-      const x = copy(expr);
+      const x = JSON.parse(JSON.stringify(expr as Expression[]));
       while (x[1] instanceof Array && x[1][0] === "Negate") {
         x[1] = x[1][1];
       }
-      if (x[1] instanceof Array) {
+      while (x[2] instanceof Array && x[2][0] === "Negate") {
+        x[2] = x[2][1];
+      }
+      if (x[1] instanceof Array && x[2] instanceof Array) {
         result.push(...this._evalNodes(
           (expr as Expression[])[1],
           (expr as Expression[])[2]));
@@ -102,12 +129,41 @@ class MathEngine extends ComputeEngine {
 
     // Evaluate 'Alpha' side of equation
     if (alpha instanceof Array) {
-      let head = alpha[0];
+      let op = this._opList.left[0];
+      this._opList.left = this._opList.left.slice(1);
 
-      switch (head) {
+      switch (op) {
         case "Negate":
           result.push(["Equal", ...this._flipNegative(alpha, beta)])
           this._evalNodes(beta, alpha)
+          break;
+        case "Add":
+          result.push(...this._addOps(beta, alpha));
+          result.forEach(recurse);
+          break;
+        case "Multiply":
+          result.push(...this._mulOps(beta, alpha));
+          result.forEach(recurse);
+          break;
+        case "Divide":
+        case "Rational":
+          result.push(...this._divOps(beta, alpha));
+          result.forEach(recurse);
+          break;
+      }
+    } else {
+      result.push(["Equal", alpha, beta]);
+    }
+
+    // Evaluate 'Beta' side of equation
+    if (beta instanceof Array) {
+      let op = this._opList.right[0];
+      this._opList.right = this._opList.right.slice(1);
+
+      switch (op) {
+        case "Negate":
+          result.push(["Equal", ...this._flipNegative(beta, alpha)])
+          this._evalNodes(alpha, beta)
           break;
         case "Add":
           result.push(...this._addOps(alpha, beta));
@@ -122,34 +178,30 @@ class MathEngine extends ComputeEngine {
           result.push(...this._divOps(alpha, beta));
           result.forEach(recurse);
           break;
-        case "Power":
-          result.push(...this._powOps(alpha, beta));
-          result.forEach(recurse);
-          break;
       }
     } else {
-      result.push(["Equal", alpha, beta]);
+      result.push(["Equal", beta, alpha]);
     }
 
-    return result;
+    return this._simplify(result);
   }
 
   /**
    * Handles add operations, isolates each component of the add operation
    */
-  _addOps(alpha: Expression[], beta: Expression): Expression[] {
+  _addOps(alpha: Expression, beta: Expression[]): Expression[] {
     let result: Expression[] = [];
 
     // Make a singlet like 'x' become an add operation
     // ['Add', 'x']
-    if (!(beta instanceof Array) || beta[0] !== "Add") {
-      beta = ["Add", beta as Expression];
+    if (!(alpha instanceof Array) || alpha[0] !== "Add") {
+      alpha = ["Add", alpha as Expression];
     }
 
     // Add the negative of the accompanying addition term, for example
     // a = b + c -> a + (-b) = b + c + (-b)
-    for (let i = 1; i < alpha.length; i++) {
-      let neg = alpha
+    for (let i = 1; i < beta.length; i++) {
+      let neg = beta
         .filter((_, index) => index !== 0 && index !== i)
         .map((n) => ["Negate", n]);
 
@@ -169,25 +221,25 @@ class MathEngine extends ComputeEngine {
    * Handles mulitplication operations, isolates each component of
    * the multiply operation
    */
-  _mulOps(alpha: Expression[], beta: Expression): Expression[] {
+  _mulOps(alpha: Expression, beta: Expression[]): Expression[] {
     let result: Expression[] = [];
 
     // flip the negative on the one being mulitplied
-    if (alpha[0] === "Negate") {
-      alpha = alpha[1] as Expression[];
-      beta = ["Negate", beta];
+    if (beta[0] === "Negate") {
+      beta = beta[1] as Expression[];
+      alpha = ["Negate", alpha];
     }
 
     // Make a singlet like 'x' become an mulitplication operation
     // ['Multiply', 'x']
-    if (!(beta instanceof Array) || beta[0] !== "Multiply") {
-      beta = ["Multiply", beta as Expression];
+    if (!(alpha instanceof Array) || alpha[0] !== "Multiply") {
+      alpha = ["Multiply", alpha as Expression];
     }
 
     // Multiply the inverse of the accompanying multipl term, for example
     // a = bc -> a * 1/b = bc * 1/b
-    for (let i = 1; i < alpha.length; i++) {
-      let inv = alpha
+    for (let i = 1; i < beta.length; i++) {
+      let inv = beta
         .filter((_, index) => index !== 0 && index !== i)
         .map((n) => ["Divide", 1, n]);
 
@@ -207,32 +259,29 @@ class MathEngine extends ComputeEngine {
    * Handles division operations, isolates each component of
    * the division operation
    */
-  _divOps(alpha: Expression[], beta: Expression): Expression[] {
+  _divOps(alpha: Expression, beta: Expression[]): Expression[] {
     let result: Expression[] = [];
 
-    // assure alpha is not negated
-    this._flipNegative(alpha as Expression, beta);
+    // flip the negative on the one being mulitplied
+    if (beta[0] === "Negate") {
+      beta = beta[1] as Expression[];
+      alpha = ["Negate", alpha];
+    }
 
-    // numerator & denominator
-    const [num,dem] = [alpha[1], alpha[2]];
+    // denominator
+    const dem = beta[2]
 
-    // seperate the nmuberator and demoninator into individual equations
-    result.push(["Equal", num, ["Multiply", beta, dem]]);
-    result.push(["Equal", dem, ["Divide", num, beta]]);
+    // convert the division to an equivolent multiplication problem
+    const eqv = [
+      "Equal",
+      ["Multiply", alpha, dem],
+      ["Multiply", beta, dem],
+    ] as Expression[];
+
+    result.push(...this._mulOps(eqv[2], eqv[1] as Expression[]))
 
     // simplify answer to get rid of the double negations
     // a * 1/b = b * c * 1/b -> c = a / b
-    return this._simplify(result);
-  }
-
-  /**
-   * Handles power operations
-   */
-  _powOps(alpha: Expression[], beta: Expression): Expression[] {
-    let result: Expression[] = [];
-
-
-
     return this._simplify(result);
   }
 }
