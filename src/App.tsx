@@ -11,7 +11,7 @@ const App: Component = () => {
   const mathEngine = new MathEngine();
 
   createEffect(() => {
-    setOutput(mathEngine.TEST_INPUT(input()));
+    setOutput(mathEngine.createEquations(input()));
   });
 
   return (

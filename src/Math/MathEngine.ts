@@ -36,28 +36,28 @@ class MathEngine extends ComputeEngine {
     result.push(...this._evalNodes(input[2], input[1]));
 
     // only include isolated variables
-    result = result.filter((expr) => {
-      const x = expr as Expression[][];
-      if (
-        (x && !(x[1] instanceof Array && x[2] instanceof Array)) ||
-        (x[1].length < 3 && !(x[1][1] instanceof Array)) ||
-        (x[2].length < 3 && !(x[2][1] instanceof Array))
-      ) {
-        return x;
-      }
-    });
+    // result = result.filter((expr) => {
+    //   const x = expr as Expression[][];
+    //   if (
+    //     (x && !(x[1] instanceof Array && x[2] instanceof Array)) ||
+    //     (x[1].length < 3 && !(x[1][1] instanceof Array)) ||
+    //     (x[2].length < 3 && !(x[2][1] instanceof Array))
+    //   ) {
+    //     return x;
+    //   }
+    // });
 
     result = result.map((expr) => {
       const x = expr as Expression[];
-      // isolate left side
-      if (x && x[1] instanceof Array) {
-        [x[1], x[2]] = [x[2], x[1]]; // E6 swap
-      }
-      // make left side never negative
-      if (x && x[1] instanceof Array && x[1][0] == "Negate") {
-        x[1] = x[1][1];
-        x[2] = ["Negate", x[2]];
-      }
+      // // isolate left side
+      // if (x && x[1] instanceof Array) {
+      //   [x[1], x[2]] = [x[2], x[1]]; // E6 swap
+      // }
+      // // make left side never negative
+      // if (x && x[1] instanceof Array && x[1][0] == "Negate") {
+      //   x[1] = x[1][1];
+      //   x[2] = ["Negate", x[2]];
+      // }
       return super.box(x).simplify().latex;
     });
 
@@ -89,15 +89,9 @@ class MathEngine extends ComputeEngine {
     let result: Expression[] = [];
 
     const recurse = (expr: Expression) => {
-      const x = copy(expr);
-      while (x[1] instanceof Array && x[1][0] === "Negate") {
-        x[1] = x[1][1];
-      }
-      if (x[1] instanceof Array) {
-        result.push(...this._evalNodes(
-          (expr as Expression[])[1],
-          (expr as Expression[])[2]));
-      }
+      const x = expr as Expression[];
+      if (!(x[1] instanceof Array)) return;
+      result.push(...this._evalNodes(x[1], x[2]));
     };
 
     // Evaluate 'Alpha' side of equation
@@ -106,8 +100,8 @@ class MathEngine extends ComputeEngine {
 
       switch (head) {
         case "Negate":
-          result.push(["Equal", ...this._flipNegative(alpha, beta)])
-          this._evalNodes(beta, alpha)
+          [alpha, beta] = this._flipNegative(alpha, beta);
+          result.push(...this._evalNodes(alpha, beta));
           break;
         case "Add":
           result.push(...this._addOps(alpha, beta));
@@ -172,12 +166,6 @@ class MathEngine extends ComputeEngine {
   _mulOps(alpha: Expression[], beta: Expression): Expression[] {
     let result: Expression[] = [];
 
-    // flip the negative on the one being mulitplied
-    if (alpha[0] === "Negate") {
-      alpha = alpha[1] as Expression[];
-      beta = ["Negate", beta];
-    }
-
     // Make a singlet like 'x' become an mulitplication operation
     // ['Multiply', 'x']
     if (!(beta instanceof Array) || beta[0] !== "Multiply") {
@@ -210,11 +198,8 @@ class MathEngine extends ComputeEngine {
   _divOps(alpha: Expression[], beta: Expression): Expression[] {
     let result: Expression[] = [];
 
-    // assure alpha is not negated
-    this._flipNegative(alpha as Expression, beta);
-
     // numerator & denominator
-    const [num,dem] = [alpha[1], alpha[2]];
+    const [num, dem] = [alpha[1], alpha[2]];
 
     // seperate the nmuberator and demoninator into individual equations
     result.push(["Equal", num, ["Multiply", beta, dem]]);
@@ -231,7 +216,7 @@ class MathEngine extends ComputeEngine {
   _powOps(alpha: Expression[], beta: Expression): Expression[] {
     let result: Expression[] = [];
 
-
+    this._flipNegative(alpha as Expression, beta);
 
     return this._simplify(result);
   }
