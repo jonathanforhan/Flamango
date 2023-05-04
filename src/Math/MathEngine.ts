@@ -61,6 +61,8 @@ class MathEngine extends ComputeEngine {
       result.push(...this._evalNode(x[1], x[2]));
     };
 
+    console.log(JSON.stringify(alpha), JSON.stringify(beta));
+
     let result: Expression[] = [];
     let operation = alpha[0];
 
@@ -111,11 +113,7 @@ class MathEngine extends ComputeEngine {
         .filter((_, index) => index !== 0 && index !== i)
         .map((n) => ["Negate", n]);
 
-      result.push([
-        "Equal",
-        [...alpha, ...neg],
-        [...beta, ...neg],
-      ] as Expression);
+      result.push(["Equal", alpha[i], [...beta, ...neg]] as Expression);
     }
 
     return this._simplify(result);
@@ -141,11 +139,7 @@ class MathEngine extends ComputeEngine {
         .filter((_, index) => index !== 0 && index !== i)
         .map((n) => ["Divide", 1, n]);
 
-      result.push([
-        "Equal",
-        [...alpha, ...inv],
-        [...beta, ...inv],
-      ] as Expression);
+      result.push(["Equal", alpha[i], [...beta, ...inv]] as Expression);
     }
 
     return this._simplify(result);
@@ -201,15 +195,15 @@ class MathEngine extends ComputeEngine {
   private _log(alpha: Expression[], beta: Expression): Expression[] {
     if (alpha.length === 2) {
       alpha[0] === "Lb"
-        ? (alpha = ["Log", 2, alpha[1]])
-        : (alpha = ["Log", 10, alpha[1]]);
+        ? (alpha = ["Log", alpha[1], 2])
+        : (alpha = ["Log", alpha[1], 10]);
     }
 
-    const [base, arg] = [alpha[1], alpha[2]];
+    const [arg, base] = [alpha[1], alpha[2]];
 
     const result: Expression[] = [
-      ["Equal", arg, ["Power", base, ["Rational", 1, beta]]],
-      ["Equal", base, ["Power", arg, beta]],
+      ["Equal", base, ["Power", arg, ["Rational", 1, beta]]],
+      ["Equal", arg, ["Power", base, beta]],
     ];
 
     return this._simplify(result);
