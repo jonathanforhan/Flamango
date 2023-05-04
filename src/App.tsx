@@ -34,7 +34,11 @@ const App: Component = () => {
           <MathDisplay
             class={styles.Display}
             items={output()
-              .map((x) => mathEngine.box(x).subs(constants()).simplify().latex)
+              .map((x) => mathEngine.box(x).subs(constants()).simplify().json)
+              .map((x) => {
+                x = [x[0], x[1], mathEngine.box(x[2]).N().json];
+                return mathEngine.box(x).simplify().latex.substring(0, 5);
+              })
               .filter((x) => isNaN(Number(x[0])))}
           />
         </div>
