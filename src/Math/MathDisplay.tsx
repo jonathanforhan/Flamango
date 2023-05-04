@@ -1,32 +1,27 @@
-import { Accessor, Component, For } from "solid-js";
+import { Component, For } from "solid-js";
 import { LaTeX } from "./MathEngine";
-
-declare module "solid-js" {
-  namespace JSX {
-    export interface IntrinsicElements {
-      ["math-field"]: any;
-    }
-  }
-}
 
 export type MathDisplayProps = {
   class?: string;
-  items: Accessor<LaTeX[]>;
+  width?: string;
+  fontSize?: string;
+  items: LaTeX[];
 };
-
-export type MathDisplayNode = HTMLDivElement & { value?: string };
 
 /**
  * MathDisplay using read-only math-field from mathlive
  */
 const MathDisplay: Component<MathDisplayProps> = (props) => {
   return (
-    <For each={props.items()}>
+    <For each={props.items}>
       {(x) => {
         return (
           <div class={props.class}>
             <math-field
-              style={{ width: "20em", fontSize: "1.5em" }}
+              style={{
+                width: props.width || "20em",
+                fontSize: props.fontSize || "1.5em",
+              }}
               read-only={true}
             >
               {x}

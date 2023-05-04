@@ -1,4 +1,4 @@
-import { ComputeEngine } from "@cortex-js/compute-engine";
+import { BoxedExpression, ComputeEngine } from "@cortex-js/compute-engine";
 import { Expression } from "@cortex-js/compute-engine/dist/types/math-json/math-json-format";
 
 export type MathJSON = Expression | Expression[] | null;
@@ -25,7 +25,7 @@ class MathEngine extends ComputeEngine {
    * Generates all deduced equations from MathInput by traversing the nodes
    * of MathJSON tree
    */
-  public createEquations(input: MathJSON): LaTeX[] {
+  public createEquations(input: MathJSON): BoxedExpression[] {
     input = (input as Expression[]) || null;
     if (!input || input[0] !== "Equal") return [];
 
@@ -34,7 +34,7 @@ class MathEngine extends ComputeEngine {
       this._evalNode(input[2], input[1])
     );
 
-    return result.map((x) => super.box(x).simplify().latex);
+    return result.map((x) => super.box(x).simplify());
   }
 
   /**
@@ -60,8 +60,6 @@ class MathEngine extends ComputeEngine {
       const x = expr as Expression[];
       result.push(...this._evalNode(x[1], x[2]));
     };
-
-    console.log(JSON.stringify(alpha), JSON.stringify(beta));
 
     let result: Expression[] = [];
     let operation = alpha[0];
@@ -194,9 +192,17 @@ class MathEngine extends ComputeEngine {
    */
   private _log(alpha: Expression[], beta: Expression): Expression[] {
     if (alpha.length === 2) {
-      alpha[0] === "Lb"
-        ? (alpha = ["Log", alpha[1], 2])
-        : (alpha = ["Log", alpha[1], 10]);
+      switch (alpha[0]) {
+        case "Lb":
+          alpha = ["Log", alpha[1], 2];
+          break;
+        case "Ln":
+          alpha = ["Log", alpha[1], "e"];
+          break;
+        case "Log":
+          alpha = ["Log", alpha[1], 10];
+          break;
+      }
     }
 
     const [arg, base] = [alpha[1], alpha[2]];

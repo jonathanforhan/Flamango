@@ -1,13 +1,33 @@
 .App {
   text-align: center;
   display: justify-content;
+  margin: auto;
+}
+
+.AppWrapper {
+  display: inline-block;
+}
+
+.Input {
+  text-align: center;
+  display: justify-content;
+  margin-bottom: 20px;
+}
+
+.Display {
+  text-align: center;
+  display: justify-content;
   margin-top: 10px;
 }
 
-.logo {
-  animation: logo-spin infinite 20s linear;
-  height: 40vmin;
-  pointer-events: none;
+.VariableInput {
+  text-align: center;
+  display: flex;
+}
+
+.VariableInputComponent {
+  text-align: center;
+  display: flex;
 }
 
 .header {

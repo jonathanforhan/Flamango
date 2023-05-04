@@ -14,6 +14,8 @@ declare var mathVirtualKeyboard: { layouts: string[] };
 export type MathInputProps = {
   class?: string;
   children?: Node;
+  width?: string;
+  fontSize?: string;
   setInput: Setter<MathJSON>;
 };
 
@@ -31,9 +33,7 @@ const MathInput: Component<MathInputProps> = (props) => {
     mathVirtualKeyboard.layouts = ["numeric", "alphabetic", "greek"];
 
     ref?.addEventListener("input", () => {
-      if (!ref.value) {
-        return props.setInput(null);
-      }
+      if (!ref.value) return props.setInput(null);
 
       const data = mathEngine.parse(ref.value, { canonical: false });
       data.errors.length
@@ -44,7 +44,13 @@ const MathInput: Component<MathInputProps> = (props) => {
 
   return (
     <div class={props.class}>
-      <math-field ref={ref} style={{ width: "20em", fontSize: "1.5em" }}>
+      <math-field
+        ref={ref}
+        style={{
+          width: props.width || "20em",
+          fontSize: props.fontSize || "1.5em",
+        }}
+      >
         {props.children}
       </math-field>
     </div>
