@@ -25,7 +25,7 @@ class MathEngine extends ComputeEngine {
    * Generates all deduced equations from MathInput by traversing the nodes
    * of MathJSON tree
    */
-  createEquations(input: MathJSON): LaTeX[] {
+  public createEquations(input: MathJSON): LaTeX[] {
     input = (input as Expression[]) || null;
     if (!input || input[0] !== "Equal") return [];
 
@@ -40,7 +40,7 @@ class MathEngine extends ComputeEngine {
   /**
    * Simplilfies equations used when we do an operation to both sides
    */
-  _simplify(expr: Expression[]): Expression[] {
+  private _simplify(expr: Expression[]): Expression[] {
     return expr.map((x) => super.box(x).simplify().json);
   }
 
@@ -50,10 +50,11 @@ class MathEngine extends ComputeEngine {
    *
    * If _evalNode is called with a scalar alpha it is added to the result
    * bucket, if alpha is a node then it is recursed and the resulting leaves
-   * are all appended to the result bucket
+   * are all appended to the result bucket. _evalNode does not append numbers
    */
-  _evalNode(alpha: Expression, beta: Expression): Expression[] {
-    if (!(alpha instanceof Array)) return [["Equal", alpha, beta]];
+  private _evalNode(alpha: Expression, beta: Expression): Expression[] {
+    if (!(alpha instanceof Array))
+      return isNaN(alpha as number) ? [["Equal", alpha, beta]] : [];
 
     const recurse = (expr: Expression) => {
       const x = expr as Expression[];
@@ -82,6 +83,8 @@ class MathEngine extends ComputeEngine {
         break;
       case "Log":
       case "Lb":
+        this._log(alpha, beta).forEach(recurse);
+        break;
     }
 
     return result;
@@ -97,7 +100,7 @@ class MathEngine extends ComputeEngine {
    *
    * a+b+c=x -> [ a=-(b+c)+x , b=-(a+c)+x , c=-(a+b)+x ]
    */
-  _add(alpha: Expression[], beta: Expression): Expression[] {
+  private _add(alpha: Expression[], beta: Expression): Expression[] {
     let result: Expression[] = [];
 
     if (!(beta instanceof Array) || beta[0] !== "Add")
@@ -127,7 +130,7 @@ class MathEngine extends ComputeEngine {
    *
    * a*b*c=x -> [ a=(1/(b*c))*x , b=(1/(a*c))*x , c=(1/(a*b))*x ]
    */
-  _mul(alpha: Expression[], beta: Expression): Expression[] {
+  private _mul(alpha: Expression[], beta: Expression): Expression[] {
     let result: Expression[] = [];
 
     if (!(beta instanceof Array) || beta[0] !== "Multiply")
@@ -156,7 +159,7 @@ class MathEngine extends ComputeEngine {
    *
    * (a+b)/c=x -> [ a+b=x*c , c=(a+b)/x ]
    */
-  _div(alpha: Expression[], beta: Expression): Expression[] {
+  private _div(alpha: Expression[], beta: Expression): Expression[] {
     const [numerator, denominator] = [alpha[1], alpha[2]];
 
     const result: Expression[] = [
@@ -174,14 +177,39 @@ class MathEngine extends ComputeEngine {
    * taking the inverse power of each side, and then isolating the exponent
    * by taking the log. Ex:
    *
-   * a^b=c -> [ a=c^(1/b), b=log,a(c) ]
+   * a^b=c -> [ a=c^(1/b), b=log_a(c) ]
    */
-  _pow(alpha: Expression[], beta: Expression): Expression[] {
+  private _pow(alpha: Expression[], beta: Expression): Expression[] {
     const [base, exp] = [alpha[1], alpha[2]];
 
     const result: Expression[] = [
       ["Equal", base, ["Power", beta, ["Rational", 1, exp]]],
       ["Equal", exp, ["Log", beta, base]],
+    ];
+
+    return this._simplify(result);
+  }
+
+  /**
+   * Logarithm handler
+   *
+   * Like _pow, splits equation into two parts, the base and argument. It then
+   * isolates each component producing 2 equivalent equations. Ex:
+   *
+   * b=log_a(c) -> [ a=c^(1/b), c=a^b ]
+   */
+  private _log(alpha: Expression[], beta: Expression): Expression[] {
+    if (alpha.length === 2) {
+      alpha[0] === "Lb"
+        ? (alpha = ["Log", 2, alpha[1]])
+        : (alpha = ["Log", 10, alpha[1]]);
+    }
+
+    const [base, arg] = [alpha[1], alpha[2]];
+
+    const result: Expression[] = [
+      ["Equal", arg, ["Power", base, ["Rational", 1, beta]]],
+      ["Equal", base, ["Power", arg, beta]],
     ];
 
     return this._simplify(result);
