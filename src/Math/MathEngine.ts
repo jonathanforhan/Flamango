@@ -16,7 +16,7 @@ class MathEngine extends ComputeEngine {
   }
 
   // TODO TESTING DELETE LATER
-  TEST_INPUT(input: MathJSON): MathJSON[] {
+  TEST_INPUT(input: MathJSON): LaTeX[] {
     console.log(JSON.stringify(input));
     return input ? [super.box(input).latex] : [];
   }
@@ -80,6 +80,8 @@ class MathEngine extends ComputeEngine {
       case "Power":
         this._pow(alpha, beta).forEach(recurse);
         break;
+      case "Log":
+      case "Lb":
     }
 
     return result;
@@ -166,10 +168,21 @@ class MathEngine extends ComputeEngine {
   }
 
   /**
-   * Handles power operations
+   * Exponent handler
+   *
+   * Splits exponential expression into two parts, isolating the base, by
+   * taking the inverse power of each side, and then isolating the exponent
+   * by taking the log. Ex:
+   *
+   * a^b=c -> [ a=c^(1/b), b=log,a(c) ]
    */
   _pow(alpha: Expression[], beta: Expression): Expression[] {
-    let result: Expression[] = [];
+    const [base, exp] = [alpha[1], alpha[2]];
+
+    const result: Expression[] = [
+      ["Equal", base, ["Power", beta, ["Rational", 1, exp]]],
+      ["Equal", exp, ["Log", beta, base]],
+    ];
 
     return this._simplify(result);
   }

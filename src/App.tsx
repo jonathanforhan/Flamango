@@ -10,9 +10,7 @@ const App: Component = () => {
   const [output, setOutput] = createSignal([] as LaTeX[]);
   const mathEngine = new MathEngine();
 
-  createEffect(() => {
-    setOutput(mathEngine.createEquations(input()));
-  });
+  createEffect(() => setOutput(mathEngine.createEquations(input())));
 
   return (
     <>

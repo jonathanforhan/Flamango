@@ -36,9 +36,9 @@ const MathInput: Component<MathInputProps> = (props) => {
       }
 
       const data = mathEngine.parse(ref.value, { canonical: false });
-      data.errors.length ?
-      props.setInput(null) :
-      props.setInput(data.json as MathJSON);
+      data.errors.length
+        ? props.setInput(null)
+        : props.setInput(data.json as MathJSON);
     });
   });
 
