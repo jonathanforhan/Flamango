@@ -29,10 +29,19 @@ class MathEngine extends ComputeEngine {
     input = (input as Expression[]) || null;
     if (!input || input[0] !== "Equal") return [];
 
-    let result = new Array().concat(
-      this._evalNode(input[1], input[2]),
-      this._evalNode(input[2], input[1])
-    );
+    let duplicates: Expression[] = [];
+
+    let result = new Array()
+      .concat(
+        this._evalNode(input[1], input[2]),
+        this._evalNode(input[2], input[1])
+      )
+      .filter((x) => {
+        if (!duplicates.includes(x[1])) {
+          duplicates.push(x[1]);
+          return x;
+        }
+      });
 
     return result.map((x) => super.box(x).simplify());
   }
@@ -175,8 +184,8 @@ class MathEngine extends ComputeEngine {
     const [base, exp] = [alpha[1], alpha[2]];
 
     const result: Expression[] = [
-      ["Equal", base, ["Power", beta, ["Rational", 1, exp]]],
-      ["Equal", exp, ["Log", beta, base]],
+      ["Equal", base, ["Power", beta, ["Divide", 1, exp]]],
+      ["Equal", exp, ["Log", beta, super.box(base).latex]],
     ];
 
     return this._simplify(result);
