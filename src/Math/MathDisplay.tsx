@@ -1,5 +1,5 @@
 import { Accessor, Component, For } from "solid-js";
-import { MathJSON } from "./MathEngine";
+import { LaTeX } from "./MathEngine";
 
 declare module "solid-js" {
   namespace JSX {
@@ -11,7 +11,7 @@ declare module "solid-js" {
 
 export type MathDisplayProps = {
   class?: string;
-  items: Accessor<MathJSON[]>;
+  items: Accessor<LaTeX[]>;
 };
 
 export type MathDisplayNode = HTMLDivElement & { value?: string };

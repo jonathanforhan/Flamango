@@ -3,11 +3,11 @@ import styles from "./App.module.css";
 
 import MathInput from "./Math/MathInput";
 import MathDisplay from "./Math/MathDisplay";
-import MathEngine, { MathJSON } from "./Math/MathEngine";
+import MathEngine, { LaTeX, MathJSON } from "./Math/MathEngine";
 
 const App: Component = () => {
   const [input, setInput] = createSignal(null as MathJSON);
-  const [output, setOutput] = createSignal([] as MathJSON[]);
+  const [output, setOutput] = createSignal([] as LaTeX[]);
   const mathEngine = new MathEngine();
 
   createEffect(() => {
