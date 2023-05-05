@@ -13,7 +13,7 @@ declare var mathVirtualKeyboard: { layouts: string[] };
 
 export type MathInputProps = {
   class?: string;
-  children?: Node;
+  children?: string;
   width?: string;
   fontSize?: string;
   setInput: Setter<MathJSON>;

@@ -11,37 +11,75 @@ class MathEngine extends ComputeEngine {
   constructor() {
     super();
     super.jsonSerializationOptions = {
-      exclude: ["Square", "Subtract", "Sqrt"],
+      exclude: ["Square", "Subtract", "Sqrt", "ExponentialE"],
     };
   }
 
-  // TODO TESTING DELETE LATER
-  TEST_INPUT(input: MathJSON): LaTeX[] {
-    console.log(JSON.stringify(input));
-    return input ? [super.box(input).latex] : [];
+  /**
+   * Formats expression in to the desired LaTeX output for displaying
+   *
+   * 1. Substitutes in all known values, constants
+   * 2. filters out numbers so only variables are shown
+   * 3. formats them accordingly based on round and sci
+   */
+  public format(
+    expr: BoxedExpression[],
+    constants: {},
+    round: number,
+    sci: boolean
+  ): LaTeX[] {
+    return expr
+      .map((x) => x.subs(constants).simplify().json)
+      .filter((x) => {
+        if ((x as Expression[])[1] === "ExponentialE") return false;
+        if (isNaN(Number((x as Expression[])[1]))) return true;
+      })
+      .map((expr) => {
+        const x = expr as Expression[];
+
+        expr = [x[0], x[1], super.box(x[2]).N().json];
+
+        expr = this.round(expr, round);
+        if (sci) console.log("TODO");
+        return super.box(expr).simplify().latex;
+      });
+  }
+
+  /**
+   * Round expression recursively to n decimal places
+   */
+  public round(input: Expression, round: number): Expression {
+    if (!(input instanceof Array)) {
+      if (!isNaN(Number(input))) {
+        const r = Math.pow(10, round);
+        return Math.round((input as number) * r) / r;
+      }
+      return input;
+    }
+    let ret: Expression[] = [];
+    for (let i = 0; i < input.length; i++) {
+      ret.push(this.round(input[i], round));
+    }
+    return ret as Expression;
   }
 
   /**
    * Generates all deduced equations from MathInput by traversing the nodes
-   * of MathJSON tree
+   * of MathJSON tree, disregards duclicates of a single variable, choosing
+   * first instance
    */
   public createEquations(input: MathJSON): BoxedExpression[] {
     input = (input as Expression[]) || null;
     if (!input || input[0] !== "Equal") return [];
 
-    let duplicates: Expression[] = [];
+    let duplicates: Set<Expression> = new Set();
 
     let result = new Array()
       .concat(
         this._evalNode(input[1], input[2]),
         this._evalNode(input[2], input[1])
       )
-      .filter((x) => {
-        if (!duplicates.includes(x[1])) {
-          duplicates.push(x[1]);
-          return x;
-        }
-      });
+      .filter((x) => (!duplicates.has(x[1]) ? duplicates.add(x[1]) : false));
 
     return result.map((x) => super.box(x).simplify());
   }
@@ -92,6 +130,7 @@ class MathEngine extends ComputeEngine {
         break;
       case "Log":
       case "Lb":
+      case "Ln":
         this._log(alpha, beta).forEach(recurse);
         break;
     }
@@ -185,7 +224,7 @@ class MathEngine extends ComputeEngine {
 
     const result: Expression[] = [
       ["Equal", base, ["Power", beta, ["Divide", 1, exp]]],
-      ["Equal", exp, ["Log", beta, super.box(base).latex]],
+      ["Equal", exp, ["Log", beta, base]],
     ];
 
     return this._simplify(result);
