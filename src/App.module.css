@@ -6,6 +6,38 @@
 
 .AppWrapper {
   display: inline-block;
+  padding: 10em;
+}
+
+.Nav {
+  background-color: #282c34;
+  min-height: 1em;
+  padding: 0 2.5em;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  font-size: calc(10px + 1vmin);
+  color: white;
+}
+
+.Options {
+}
+
+.OptionsWrapper {
+  min-height: 1em;
+  padding: 2.5em 2.5em;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  font-size: calc(10px + 1vmin);
+  color: white;
+}
+
+.Profile {
+  display: flex;
+  align-items: center;
 }
 
 .Input {
@@ -28,28 +60,4 @@
 .VariableInputComponent {
   text-align: center;
   display: flex;
-}
-
-.header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.link {
-  color: #b318f0;
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }

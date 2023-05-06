@@ -25,14 +25,20 @@ class MathEngine extends ComputeEngine {
   public format(
     expr: BoxedExpression[],
     constants: {},
+    exclude: string[],
     round: number,
     sci: boolean
   ): LaTeX[] {
     return expr
       .map((x) => x.subs(constants).simplify().json)
       .filter((x) => {
-        if ((x as Expression[])[1] === "ExponentialE") return false;
-        if (isNaN(Number((x as Expression[])[1]))) return true;
+        if (exclude.includes((x as Expression[])[1] as string)) return false;
+
+        const LHS = super
+          .box((x as Expression[])[1])
+          .N()
+          .valueOf();
+        if (isNaN(Number(LHS))) return true;
       })
       .map((expr) => {
         const x = expr as Expression[];
@@ -40,6 +46,7 @@ class MathEngine extends ComputeEngine {
         expr = [x[0], x[1], super.box(x[2]).N().json];
 
         expr = this.round(expr, round);
+        if (exclude.length) console.log("TODO");
         if (sci) console.log("TODO");
         return super.box(expr).simplify().latex;
       });
@@ -49,18 +56,13 @@ class MathEngine extends ComputeEngine {
    * Round expression recursively to n decimal places
    */
   public round(input: Expression, round: number): Expression {
-    if (!(input instanceof Array)) {
-      if (!isNaN(Number(input))) {
-        const r = Math.pow(10, round);
-        return Math.round((input as number) * r) / r;
-      }
-      return input;
-    }
-    let ret: Expression[] = [];
-    for (let i = 0; i < input.length; i++) {
-      ret.push(this.round(input[i], round));
-    }
-    return ret as Expression;
+    if (input instanceof Array)
+      return input.map((x) => this.round(x, round)) as Expression;
+
+    if (isNaN(Number(input))) return input;
+
+    const r = Math.pow(10, round);
+    return Math.round((input as number) * r) / r;
   }
 
   /**

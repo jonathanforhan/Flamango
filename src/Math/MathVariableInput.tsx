@@ -15,7 +15,6 @@ export type MathInputProps = {
   width?: string;
   fontSize?: string;
   item: LaTeX;
-  // constant: Accessor<{}>;
   setConstant: Setter<{}>;
 };
 
