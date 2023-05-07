@@ -1,6 +1,7 @@
 import { Component, createEffect, createSignal, Setter } from "solid-js";
 import styles from "./Math.module.css";
-import MathEngine, { LaTeX, MathJSON } from "./MathEngine";
+
+import MathEngine, { MathJSON } from "./MathEngine";
 import MathInput from "./MathInput";
 import MathDisplay from "./MathDisplay";
 import { Props } from "../App";

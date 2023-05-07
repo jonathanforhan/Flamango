@@ -1,0 +1,16 @@
+.Header {
+  min-height: 1em;
+  padding: 1.2em 2.5em 1.2em 2.5em;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.2em;
+  background-color: var(--bg-accent-color);
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1);
+}
+
+.Profile {
+  display: flex;
+  align-items: center;
+}

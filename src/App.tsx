@@ -1,8 +1,8 @@
 import { Setter, Component, createSignal, JSXElement } from "solid-js";
 import styles from "./App.module.css";
 
-import Nav from "./Components/Nav";
-import Options from "./Components/Options";
+import Header from "./Header/Header";
+import Options from "./Options/Options";
 import MathComponent from "./Math/MathComponent";
 
 export type DOMNode = HTMLDivElement & { value?: string };
@@ -14,12 +14,6 @@ export type Props = {
   children?: JSXElement;
 };
 
-export interface Options {
-  setRounding: Setter<number>;
-  setScientific: Setter<boolean>;
-  setConstants: Setter<{}>;
-}
-
 const App: Component = () => {
   const [rounding, setRounding] = createSignal(5);
   const [scientific, setScientific] = createSignal(false);
@@ -27,8 +21,12 @@ const App: Component = () => {
 
   return (
     <div class={styles.App}>
-      <Nav class={styles.Nav} />
-      <Options setRounding={setRounding} />
+      <Header />
+      <Options
+        setRounding={setRounding}
+        setScientific={setScientific}
+        setConstants={setConstants}
+      />
       <MathComponent rounding={rounding} scientific={scientific} />
     </div>
   );

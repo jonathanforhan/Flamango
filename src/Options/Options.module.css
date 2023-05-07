@@ -1,0 +1,79 @@
+.Options {
+  padding: 2.6em;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.Button {
+  width: 35px;
+  height: 35px;
+  margin-bottom: 1em;
+  background-color: var(--bg-accent-color);
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1);
+}
+
+.Slider {
+  padding: 0 1em 0.5em 1em;
+  justify-content: space-between;
+  display: flex;
+  border-bottom: 1px solid var(--bg-color);
+}
+
+.Switch {
+  position: relative;
+  display: inline-block;
+  width: 42px;
+  height: 24px;
+}
+
+.Switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.SwitchInner {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #aaa;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+  border-radius: 34px;
+}
+
+.SwitchInner:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #eee;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .SwitchInner {
+  background-color: #2a7ad5;
+}
+
+input:focus + .SwitchInner {
+  box-shadow: 0 0 1px #2a7ad5;
+}
+
+input:checked + .SwitchInner:before {
+  -webkit-transform: translateX(18px);
+  -ms-transform: translateX(18px);
+  transform: translateX(18px);
+}
+
+.SciNot {
+  padding: 0.8em 1em 0.8em 1.2em;
+  display: flex;
+}

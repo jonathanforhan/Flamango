@@ -1,15 +1,3 @@
 .App {
   text-align: center;
 }
-
-.Nav {
-  min-height: 1em;
-  padding: 0 2.5em;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  font-size: calc(10px + 1vmin);
-  background-color: var(--bg-accent-color);
-  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1);
-}
