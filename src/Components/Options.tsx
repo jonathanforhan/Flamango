@@ -1,6 +1,7 @@
 import { Component, createSignal, onMount, Setter } from "solid-js";
 import styles from "./Components.module.css";
 import Configuration from "./Configuration";
+import Constants from "./Constants";
 
 import { Wrench, Pi } from "./Icons";
 import Menu from "./Menu";
@@ -52,7 +53,7 @@ const Options: Component<OptionsProps> = (props) => {
             <Pi />
           </button>
           <Menu class={constantBtn() ? styles.DropMenuActive : styles.DropMenu}>
-            <Configuration setRounding={props.setRounding} />
+            <Constants />
           </Menu>
         </div>
       </div>

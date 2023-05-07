@@ -15,9 +15,13 @@ const Configuration: Component<ConfigurationProps> = (props) => {
   return (
     <>
       <div class={styles.Configuration}>
-        <h4>Rounding</h4>
+        <div style={{ padding: "0.8em 1em 0.8em 1.2em", "text-align": "left" }}>
+          Rounding
+        </div>
+
         <div class={styles.Slider}>
           <input
+            style={{ width: "60%" }}
             type="range"
             min="0"
             max="5"
@@ -27,6 +31,13 @@ const Configuration: Component<ConfigurationProps> = (props) => {
           <div style={{ "text-align": "right" }}>
             <div>{1 / Math.pow(10, round())}</div>
           </div>
+        </div>
+        <div class={styles.SciNot}>
+          <label class={styles.Switch}>
+            <input type="checkbox" />
+            <span class={styles.SwitchInner}></span>
+          </label>
+          <div style={{ "margin-left": "0.8em" }}>Scientific Notation</div>
         </div>
       </div>
     </>
