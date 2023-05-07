@@ -1,33 +1,21 @@
-import { Component, createEffect, onMount, Setter } from "solid-js";
-import MathEngine, { MathJSON } from "./MathEngine";
-import styles from "./Math.module.css";
+import { Component, onMount, Setter } from "solid-js";
 
-declare module "solid-js" {
-  namespace JSX {
-    export interface IntrinsicElements {
-      ["math-field"]: any;
-    }
-  }
-}
+import { DOMNode, Props } from "../App";
+import MathEngine, { MathJSON } from "./MathEngine";
+import MathField from "./MathField";
 
 declare var mathVirtualKeyboard: { layouts: string[] };
 
-export type MathInputProps = {
-  class?: string;
-  children?: string;
-  width?: string;
-  fontSize?: string;
+type MathInputProps = Props & {
   setInput: Setter<MathJSON>;
+  mathEngine: MathEngine;
 };
 
-export type MathNode = HTMLDivElement & { value?: string };
-
 /**
- * MathInput using math-field from mathlive
+ * MathInput, read-write, input listener sets input state
  */
 const MathInput: Component<MathInputProps> = (props) => {
-  const mathEngine = new MathEngine();
-  let ref: MathNode = undefined as unknown as HTMLDivElement;
+  let ref: DOMNode = undefined as unknown as HTMLDivElement;
 
   // Initialize keyboard
   onMount(() => {
@@ -35,24 +23,12 @@ const MathInput: Component<MathInputProps> = (props) => {
 
     ref?.addEventListener("input", () => {
       if (!ref.value) return props.setInput(null);
-
-      const data = mathEngine.parse(ref.value, { canonical: false });
-
+      const data = props.mathEngine.parse(ref.value, { canonical: false });
       if (!data.errors.length) props.setInput(data.json as MathJSON);
     });
   });
 
-  return (
-    <div class={props.class}>
-      <math-field
-        class={styles.MathField}
-        ref={ref}
-        style={{ width: props.width || "20em" }}
-      >
-        {props.children}
-      </math-field>
-    </div>
-  );
+  return <MathField class={props.class} ref={ref} style={props.style} />;
 };
 
 export default MathInput;

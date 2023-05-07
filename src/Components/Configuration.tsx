@@ -25,7 +25,7 @@ const Configuration: Component<ConfigurationProps> = (props) => {
             type="range"
             min="0"
             max="5"
-            value={round.toString()}
+            value={round().toString()}
             onInput={(x) => handleRounding(Number(x.target.value))}
           />
           <div style={{ "text-align": "right" }}>

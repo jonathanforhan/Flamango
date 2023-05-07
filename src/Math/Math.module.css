@@ -1,9 +1,43 @@
-.MathField {
+.IColor {
   background-color: var(--bg-accent-color);
   color: var(--fg-color);
 }
 
-.VariableInputComponent {
-  text-align: center;
+.MathComponent {
+  display: inline-block;
+}
+
+.MathInput {
+  composes: IColor;
+  width: 20em;
+  font-size: 1.2em;
+  margin-bottom: 2em;
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1);
+}
+
+.MathDisplay {
+  composes: IColor;
+  width: 20em;
+  font-size: 1.2em;
+  margin-top: 1em;
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1);
+}
+
+.MathSetVariable {
   display: flex;
+  font-size: 1.2em;
+  width: 20.5em;
+  margin-bottom: 2px;
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1);
+}
+
+.MathVariableInput {
+  composes: IColor;
+  width: 100%;
+}
+
+.MathVariableDisplay {
+  composes: IColor;
+  display: flex;
+  width: 2.5em;
 }

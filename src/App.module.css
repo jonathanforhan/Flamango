@@ -2,11 +2,6 @@
   text-align: center;
 }
 
-.AppWrapper {
-  display: inline-block;
-  padding: 5em;
-}
-
 .Nav {
   min-height: 1em;
   padding: 0 2.5em;
@@ -16,28 +11,5 @@
   justify-content: space-between;
   font-size: calc(10px + 1vmin);
   background-color: var(--bg-accent-color);
-  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1);
-}
-
-.Input {
-  font-size: 1.2em;
-  text-align: center;
-  display: justify-content;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1);
-}
-
-.Display {
-  font-size: 1.2em;
-  text-align: center;
-  display: justify-content;
-  margin-top: 10px;
-  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1);
-}
-
-.VariableInput {
-  font-size: 1.2em;
-  text-align: center;
-  display: flex;
   box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1);
 }
