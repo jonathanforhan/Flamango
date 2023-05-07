@@ -1,11 +1,5 @@
-import {
-  Accessor,
-  Component,
-  createEffect,
-  createSignal,
-  Setter,
-} from "solid-js";
-import styles from "../App.module.css";
+import { Component, createEffect, createSignal, Setter } from "solid-js";
+import styles from "./Math.module.css";
 import { LaTeX, MathJSON } from "./MathEngine";
 import MathInput from "./MathInput";
 import MathDisplay from "./MathDisplay";
@@ -44,7 +38,7 @@ const MathVariableInput: Component<MathInputProps> = (props) => {
       />
       <MathInput
         class={styles.VariableInputComponent}
-        width={props.width || "17.4em"}
+        width={props.width || "17.5em"}
         fontSize={props.fontSize || "1.5em"}
         setInput={setInput}
       />

@@ -1,5 +1,6 @@
 import { Component, For } from "solid-js";
 import { LaTeX } from "./MathEngine";
+import styles from "./Math.module.css";
 
 export type MathDisplayProps = {
   class?: string;
@@ -18,6 +19,7 @@ const MathDisplay: Component<MathDisplayProps> = (props) => {
         return (
           <div class={props.class}>
             <math-field
+              class={styles.MathField}
               style={{
                 width: props.width || "20em",
                 fontSize: props.fontSize || "1.5em",

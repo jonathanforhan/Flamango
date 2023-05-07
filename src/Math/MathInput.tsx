@@ -1,5 +1,6 @@
-import { Component, createEffect, Setter } from "solid-js";
+import { Component, createEffect, onMount, Setter } from "solid-js";
 import MathEngine, { MathJSON } from "./MathEngine";
+import styles from "./Math.module.css";
 
 declare module "solid-js" {
   namespace JSX {
@@ -29,27 +30,24 @@ const MathInput: Component<MathInputProps> = (props) => {
   let ref: MathNode = undefined as unknown as HTMLDivElement;
 
   // Initialize keyboard
-  createEffect(() => {
+  onMount(() => {
     mathVirtualKeyboard.layouts = ["numeric", "alphabetic", "greek"];
 
     ref?.addEventListener("input", () => {
       if (!ref.value) return props.setInput(null);
 
       const data = mathEngine.parse(ref.value, { canonical: false });
-      data.errors.length
-        ? props.setInput(null)
-        : props.setInput(data.json as MathJSON);
+
+      if (!data.errors.length) props.setInput(data.json as MathJSON);
     });
   });
 
   return (
     <div class={props.class}>
       <math-field
+        class={styles.MathField}
         ref={ref}
-        style={{
-          width: props.width || "20em",
-          fontSize: props.fontSize || "1.5em",
-        }}
+        style={{ width: props.width || "20em" }}
       >
         {props.children}
       </math-field>

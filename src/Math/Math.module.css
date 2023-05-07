@@ -1,0 +1,9 @@
+.MathField {
+  background-color: var(--bg-accent-color);
+  color: var(--fg-color);
+}
+
+.VariableInputComponent {
+  text-align: center;
+  display: flex;
+}

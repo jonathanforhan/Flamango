@@ -11,13 +11,13 @@ import MathVariableInput from "./Math/MathVariableInput";
 import { BoxedExpression } from "@cortex-js/compute-engine";
 
 const exclude = ["ExponentialE", "Pi"];
-const round = 4;
 const sci = false;
 
 const App: Component = () => {
   const [input, setInput] = createSignal(null as MathJSON);
   const [output, setOutput] = createSignal([] as BoxedExpression[]);
   const [constants, setConstants] = createSignal({});
+  const [rounding, setRounding] = createSignal(5);
 
   const mathEngine = new MathEngine();
 
@@ -25,9 +25,9 @@ const App: Component = () => {
 
   return (
     <>
-      <Nav />
-      <Options />
       <div class={styles.App}>
+        <Nav class={styles.Nav} />
+        <Options setRounding={setRounding} />
         <div class={styles.AppWrapper}>
           <MathInput class={styles.Input} setInput={setInput} />
           <For
@@ -49,7 +49,7 @@ const App: Component = () => {
               output(),
               constants(),
               exclude,
-              round,
+              rounding(),
               sci
             )}
           />

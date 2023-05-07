@@ -1,14 +1,17 @@
 import { Component } from "solid-js";
-import styles from "../App.module.css";
 
-const Nav: Component = () => {
+export type NavProps = {
+  class?: string;
+};
+
+const Nav: Component<NavProps> = (props) => {
   return (
     <>
-      <nav class={styles.Nav}>
+      <nav class={props.class}>
         <div>Flamango</div>
         <ul>
-          <a href="https://github.com/jonathanforhan/" class="Profile">
-            <span class="">Profile</span>
+          <a href="https://github.com/jonathanforhan/">
+            <span>Profile</span>
           </a>
         </ul>
       </nav>
