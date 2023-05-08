@@ -24,7 +24,9 @@ const MathInput: Component<MathInputProps> = (props) => {
     ref?.addEventListener("input", () => {
       if (!ref.value) return props.setInput(null);
       const data = props.mathEngine.parse(ref.value, { canonical: false });
-      if (!data.errors.length) props.setInput(data.json as MathJSON);
+      if (!data.errors.length) {
+        props.setInput(data.json as MathJSON);
+      }
     });
   });
 

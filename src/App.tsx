@@ -1,4 +1,4 @@
-import { Setter, Component, createSignal, JSXElement } from "solid-js";
+import { Component, createSignal, JSXElement } from "solid-js";
 import styles from "./App.module.css";
 
 import Header from "./Header/Header";

@@ -6,7 +6,7 @@ import { Props } from "../App";
 import { Wrench, Pi } from "../Components/Icons";
 import { Dropdown, DropdownMenu } from "../Components/Dropdown";
 
-import Configuration from "./Config";
+import Config from "./Config";
 
 type OptionsProps = Props & {
   setRounding: Setter<number>;
@@ -46,7 +46,10 @@ const Options: Component<OptionsProps> = (props) => {
             <Wrench />
           </button>
           <DropdownMenu active={configActive}>
-            <Configuration setRounding={props.setRounding} />
+            <Config
+              setRounding={props.setRounding}
+              setScientific={props.setScientific}
+            />
           </DropdownMenu>
         </Dropdown>
         <Dropdown>

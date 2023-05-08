@@ -28,6 +28,7 @@ const MathComponent: Component<MathComponentProps> = (props) => {
 
   // Universal mathEngine passed to children to save on memory
   const mathEngine = new MathEngine();
+  mathEngine.latexOptions = { notation: "scientific" };
 
   createEffect(() => setOutput(mathEngine.createEquations(input())));
 
@@ -64,7 +65,7 @@ const MathComponent: Component<MathComponentProps> = (props) => {
           variables(),
           exclude,
           props.rounding(),
-          false
+          props.scientific()
         )}
       >
         {(x) => <MathDisplay class={styles.MathDisplay}>{x}</MathDisplay>}

@@ -33,6 +33,8 @@ class MathEngine extends ComputeEngine {
       .map((x) => x.subs(constants).simplify().json)
       .filter((x) => {
         if (exclude.includes((x as Expression[])[1] as string)) return false;
+        if (JSON.stringify((x as Expression[])[2]).includes("Error"))
+          return false;
 
         const LHS = super
           .box((x as Expression[])[1])
@@ -45,24 +47,16 @@ class MathEngine extends ComputeEngine {
 
         expr = [x[0], x[1], super.box(x[2]).N().json];
 
-        expr = this.round(expr, round);
-        if (exclude.length) console.log("TODO");
-        if (sci) console.log("TODO");
-        return super.box(expr).simplify().latex;
+        this.latexOptions = {
+          precision: round + 1,
+          truncationMarker: "",
+        };
+
+        if (sci) this.latexOptions.avoidExponentsInRange = null;
+        else this.latexOptions.avoidExponentsInRange = [-12, 12];
+
+        return super.serialize(expr);
       });
-  }
-
-  /**
-   * Round expression recursively to n decimal places
-   */
-  public round(input: Expression, round: number): Expression {
-    if (input instanceof Array)
-      return input.map((x) => this.round(x, round)) as Expression;
-
-    if (isNaN(Number(input))) return input;
-
-    const r = Math.pow(10, round);
-    return Math.round((input as number) * r) / r;
   }
 
   /**

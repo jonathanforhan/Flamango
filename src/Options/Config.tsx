@@ -1,16 +1,28 @@
-import { Component, createSignal, Setter } from "solid-js";
+import { Component, createSignal, onMount, Setter } from "solid-js";
 import styles from "./Options.module.css";
 
 type ConfigProps = {
   setRounding: Setter<number>;
+  setScientific: Setter<boolean>;
 };
 
-const Configuration: Component<ConfigProps> = (props) => {
-  const [rounding, setRoundingLocal] = createSignal(5);
+/**
+ * Configuration options for the MathComponent, Round & ScientificNotation
+ */
+const Config: Component<ConfigProps> = (props) => {
+  const [rounding, setRoundingLocal] = createSignal(NaN);
   const handleRounding = (r: number) => {
     setRoundingLocal(r);
     props.setRounding(r);
   };
+
+  // gets the rounding specified in App.tsx without needing to pass accessor
+  onMount(() => {
+    props.setRounding((x) => {
+      setRoundingLocal(x);
+      return x;
+    });
+  });
 
   return (
     <>
@@ -22,18 +34,20 @@ const Configuration: Component<ConfigProps> = (props) => {
           style={{ width: "60%" }}
           type="range"
           min="0"
-          max="5"
+          max="6"
           value={rounding().toString()}
           onInput={(x) => handleRounding(Number(x.target.value))}
         />
         <div style={{ "text-align": "right" }}>
-          <div>{1 / Math.pow(10, rounding())}</div>
+          {1 / Math.pow(10, rounding())}
         </div>
       </div>
-      <div class={styles.SciNot}>
-        <label class={styles.Switch}>
-          <input type="checkbox" />
-          <span class={styles.SwitchInner}></span>
+      <div class={styles.Scientific}>
+        <label>
+          <input
+            type="checkbox"
+            onChange={(e) => props.setScientific(e.target.checked)}
+          />
         </label>
         <div style={{ "margin-left": "0.8em" }}>Scientific Notation</div>
       </div>
@@ -41,4 +55,4 @@ const Configuration: Component<ConfigProps> = (props) => {
   );
 };
 
-export default Configuration;
+export default Config;
