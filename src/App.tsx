@@ -27,7 +27,11 @@ const App: Component = () => {
         setScientific={setScientific}
         setConstants={setConstants}
       />
-      <MathComponent rounding={rounding} scientific={scientific} />
+      <MathComponent
+        rounding={rounding}
+        scientific={scientific}
+        constants={constants}
+      />
     </div>
   );
 };

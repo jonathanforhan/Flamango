@@ -11,7 +11,6 @@
 
 .DropMenu {
   position: absolute;
-  z-index: 10;
   background-color: var(--bg-accent-color);
   color: var(--fg-color);
   border-radius: 3px;
@@ -27,6 +26,7 @@
 
 .DropMenuActive {
   composes: DropMenu;
+  z-index: 10;
   pointer-events: auto;
   opacity: 1;
   transform: translateX(0);

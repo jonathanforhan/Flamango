@@ -35,20 +35,18 @@ const Config: Component<ConfigProps> = (props) => {
           type="range"
           min="0"
           max="6"
-          value={rounding().toString()}
-          onInput={(x) => handleRounding(Number(x.target.value))}
+          value={rounding()}
+          onInput={(x) => handleRounding(+x.target.value)}
         />
         <div style={{ "text-align": "right" }}>
           {1 / Math.pow(10, rounding())}
         </div>
       </div>
       <div class={styles.Scientific}>
-        <label>
-          <input
-            type="checkbox"
-            onChange={(e) => props.setScientific(e.target.checked)}
-          />
-        </label>
+        <input
+          type="checkbox"
+          onChange={(e) => props.setScientific(e.target.checked)}
+        />
         <div style={{ "margin-left": "0.8em" }}>Scientific Notation</div>
       </div>
     </>

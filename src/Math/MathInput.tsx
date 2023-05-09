@@ -30,7 +30,11 @@ const MathInput: Component<MathInputProps> = (props) => {
     });
   });
 
-  return <MathField class={props.class} ref={ref} style={props.style} />;
+  return (
+    <MathField class={props.class} ref={ref} style={props.style}>
+      {props.children}
+    </MathField>
+  );
 };
 
 export default MathInput;

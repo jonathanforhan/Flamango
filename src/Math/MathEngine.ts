@@ -11,8 +11,10 @@ class MathEngine extends ComputeEngine {
   constructor() {
     super();
     super.jsonSerializationOptions = {
-      exclude: ["Square", "Subtract", "Sqrt", "ExponentialE"],
+      exclude: ["Square", "Subtract", "Sqrt"],
     };
+    super.latexOptions.notation = "scientific";
+    super.latexOptions.truncationMarker = "";
   }
 
   /**
@@ -40,20 +42,18 @@ class MathEngine extends ComputeEngine {
           .box((x as Expression[])[1])
           .N()
           .valueOf();
-        if (isNaN(Number(LHS))) return true;
+
+        return isNaN(Number(LHS));
       })
       .map((expr) => {
         const x = expr as Expression[];
 
         expr = [x[0], x[1], super.box(x[2]).N().json];
 
-        this.latexOptions = {
-          precision: round + 1,
-          truncationMarker: "",
-        };
-
-        if (sci) this.latexOptions.avoidExponentsInRange = null;
-        else this.latexOptions.avoidExponentsInRange = [-12, 12];
+        this.latexOptions.precision = round + 1;
+        sci
+          ? (this.latexOptions.avoidExponentsInRange = null)
+          : (this.latexOptions.avoidExponentsInRange = [-6, 12]);
 
         return super.serialize(expr);
       });

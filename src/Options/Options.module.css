@@ -24,3 +24,11 @@
   padding: 0.8em 1em;
   display: flex;
 }
+
+.Constants {
+  background-color: var(--bg-accent-color);
+  color: var(--fg-color);
+  width: 12.4em;
+  margin: 0 1em;
+  font-size: 1em;
+}

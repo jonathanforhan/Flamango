@@ -3,19 +3,19 @@ import styles from "./Math.module.css";
 
 import { MathJSON } from "./MathEngine";
 import { BoxedExpression } from "@cortex-js/compute-engine";
-import { Props } from "../App";
+
 import MathInput from "./MathInput";
 import MathEngine from "./MathEngine";
 import MathSetVariable from "./MathSetVariable";
 import MathDisplay from "./MathDisplay";
 
-const exclude = ["ExponentialE", "Pi"];
-
-type MathComponentProps = Props & {
+type MathComponentProps = {
   rounding: Accessor<number>;
   scientific: Accessor<boolean>;
-  constants?: Accessor<{}>;
+  constants: Accessor<{}>;
 };
+
+const exclude = ["ExponentialE", "Pi"];
 
 /**
  * MathComponent, high-level wrapper on the input and display components to
@@ -28,7 +28,6 @@ const MathComponent: Component<MathComponentProps> = (props) => {
 
   // Universal mathEngine passed to children to save on memory
   const mathEngine = new MathEngine();
-  mathEngine.latexOptions = { notation: "scientific" };
 
   createEffect(() => setOutput(mathEngine.createEquations(input())));
 
@@ -38,7 +37,12 @@ const MathComponent: Component<MathComponentProps> = (props) => {
   const isolateVariables = (expr: BoxedExpression[]) => {
     return expr
       .map((x) => (x.json as string[])[1] || "")
-      .filter((x) => !exclude.includes(x));
+      .filter((x) => {
+        // not in exclude list and not a constant value
+        return (
+          !exclude.includes(x) && !Object.keys(props.constants()).includes(x)
+        );
+      });
   };
 
   return (
@@ -62,7 +66,7 @@ const MathComponent: Component<MathComponentProps> = (props) => {
       <For
         each={mathEngine.format(
           output(),
-          variables(),
+          { ...variables(), ...props.constants() },
           exclude,
           props.rounding(),
           props.scientific()
