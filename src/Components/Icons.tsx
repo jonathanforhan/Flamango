@@ -35,9 +35,6 @@ export const Pi: Component = () => {
       viewBox="0 0 1280.000000 1100.000000"
       preserveAspectRatio="xMidYMid meet"
     >
-      <metadata>
-        Created by potrace 1.15, written by Peter Selinger 2001-2017
-      </metadata>
       <g
         transform="translate(0.000000,1280.000000) scale(0.100000,-0.100000)"
         stroke="none"
@@ -47,3 +44,41 @@ export const Pi: Component = () => {
     </svg>
   );
 };
+
+export const Minus = () => {
+  return (
+    <svg
+      class={styles.Icon}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+    >
+      <g
+        transform="translate(2,4.8) scale(0.8, 0.8)"
+        stroke="none"
+      >
+      <path d="M0 10h24v4h-24z"/>
+      </g>
+    </svg>
+  )
+}
+
+export const Plus = () => {
+  return (
+    <svg
+      class={styles.Icon}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+    >
+      <g
+        transform="translate(2.000000,4.8) scale(0.8, 0.8)"
+        stroke="none"
+      >
+      <path d="M24 10h-10v-10h-4v10h-10v4h10v10h4v-10h10z"/>
+      </g>
+    </svg>
+  )
+}

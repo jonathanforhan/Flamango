@@ -13,6 +13,18 @@
   box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1);
 }
 
+.AddSubButton {
+  width: 2.51em;
+  height: 2.51em;
+  background-color: var(--bg-accent-color);
+  border: 1px solid #aaa;
+  border-radius: 2px;
+}
+
+.AddSubButton:active {
+  border: 1px solid #777;
+}
+
 .Slider {
   padding: 0 1em 0.5em 1em;
   justify-content: space-between;
@@ -25,10 +37,27 @@
   display: flex;
 }
 
-.Constants {
+.ConstantsDefault {
   background-color: var(--bg-accent-color);
   color: var(--fg-color);
   width: 12.4em;
   margin: 0 1em;
   font-size: 1em;
+}
+
+.ConstantsDisplay {
+  background-color: var(--bg-accent-color);
+  color: var(--fg-color);
+  width: 10.22em;
+  height: 1.7em;
+  margin: 0 0 0 1.05em;
+  font-size: 1em;
+}
+
+.Constants {
+  background-color: var(--bg-accent-color);
+  color: var(--fg-color);
+  width: 12.8em;
+  margin: 0 0 0 1.3em;
+  font-size: 0.8em;
 }

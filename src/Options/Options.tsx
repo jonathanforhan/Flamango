@@ -14,7 +14,7 @@ import { Wrench, Pi } from "../Components/Icons";
 import { Dropdown, DropdownMenu } from "../Components/Dropdown";
 
 import Config from "./Config";
-import { Constants, ConstantsDefault } from "./Constants";
+import { Constants, ConstantsDefault, ConstantsDisplay } from "./Constants";
 
 type OptionsProps = Props & {
   setRounding: Setter<number>;
@@ -30,9 +30,9 @@ const Options: Component<OptionsProps> = (props) => {
   const [configActive, setConfigActive] = createSignal(false);
   const [constantActive, setConstantActive] = createSignal(false);
   const [constants, setConstantsLocal] = createSignal({});
+  const [clear, setClear] = createSignal(false);
 
   createEffect(() => {
-    console.log(constants());
     props.setConstants(() => constants());
   });
 
@@ -85,17 +85,42 @@ const Options: Component<OptionsProps> = (props) => {
             <div style={{ padding: "0.8em", "text-align": "left" }}>
               Constants
             </div>
-            <ConstantsDefault class={styles.Constants}>
+            <ConstantsDefault class={styles.ConstantsDefault}>
               \pi=3.141593
             </ConstantsDefault>
-            <ConstantsDefault class={styles.Constants}>
+            <ConstantsDefault class={styles.ConstantsDefault}>
               e=2.718281
             </ConstantsDefault>
+            <For each={Object.entries(constants())}>
+              {(e) => (
+                <ConstantsDisplay
+                  class={styles.ConstantsDisplay}
+                  onClick={() => {
+                    setConstantsLocal((x: any) => {
+                      delete x[e[0]];
+                      return { ...x };
+                    });
+                    setTimeout(() => setConstantActive(true));
+                  }}
+                >
+                  {`${e[0]}=${e[1]}`}
+                </ConstantsDisplay>
+              )}
+            </For>
             <div style={{ "margin-bottom": "1em" }} />
-            <Constants
-              class={styles.Constants}
-              setConstants={setConstantsLocal}
-            />
+            {clear() ? (
+              <></>
+            ) : (
+              <Constants
+                class={styles.Constants}
+                setConstants={setConstantsLocal}
+                onClick={() => {
+                  setClear(true);
+                  setClear(false);
+                  setTimeout(() => setConstantActive(true));
+                }}
+              />
+            )}
             <div style={{ "margin-bottom": "1em" }} />
           </DropdownMenu>
         </Dropdown>

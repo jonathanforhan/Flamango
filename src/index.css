@@ -25,9 +25,14 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  margin-bottom: 5em;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
+}
+
+math-field::part(virtual-keyboard-toggle):after {
+  display: none; /* hide annoying tooltip */
 }
