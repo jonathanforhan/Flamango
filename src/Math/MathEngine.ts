@@ -35,7 +35,7 @@ class MathEngine extends ComputeEngine {
       .map((x) => x.subs(constants).simplify().json)
       .filter((x) => {
         if (exclude.includes((x as Expression[])[1] as string)) return false;
-        if (JSON.stringify((x as Expression[])[2]).includes("Error"))
+        if (JSON.stringify((x as Expression[])[2])?.includes("Error"))
           return false;
 
         const LHS = super
