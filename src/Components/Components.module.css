@@ -2,6 +2,7 @@
   width: 2em;
   height: 2em;
   font: serif;
+  font-size: 1em;
   fill: var(--fg-color);
   pointer-events: none;
 }
