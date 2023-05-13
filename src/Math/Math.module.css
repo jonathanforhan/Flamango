@@ -16,7 +16,9 @@
   box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1);
 }
 @media (min-width: 1000px) {
-  width: 20em;
+  .MathInput {
+    width: 20em;
+  }
 }
 
 .MathDisplay {
@@ -27,7 +29,9 @@
   box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1);
 }
 @media (min-width: 1000px) {
-  width: 20em;
+  .MathDisplay {
+    width: 20em;
+  }
 }
 
 .MathSetVariable {
@@ -38,7 +42,9 @@
   box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1);
 }
 @media (min-width: 1000px) {
-  width: 20em;
+  .MathSetVariable {
+    width: 20.5em;
+  }
 }
 
 .MathVariableInput {
