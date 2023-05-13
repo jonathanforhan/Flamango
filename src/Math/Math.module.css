@@ -10,26 +10,35 @@
 
 .MathInput {
   composes: IColor;
-  width: 20em;
+  width: 14em;
   font-size: 1.2em;
   margin-bottom: 2em;
   box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1);
 }
+@media (min-width: 1000px) {
+  width: 20em;
+}
 
 .MathDisplay {
   composes: IColor;
-  width: 20em;
+  width: 14em;
   font-size: 1.2em;
   margin-top: 1em;
   box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1);
+}
+@media (min-width: 1000px) {
+  width: 20em;
 }
 
 .MathSetVariable {
   display: flex;
   font-size: 1.2em;
-  width: 20.5em;
+  width: 14.5em;
   margin-bottom: 2px;
   box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1);
+}
+@media (min-width: 1000px) {
+  width: 20em;
 }
 
 .MathVariableInput {
@@ -40,5 +49,5 @@
 .MathVariableDisplay {
   composes: IColor;
   display: flex;
-  width: 2.5em;
+  width: 2em;
 }

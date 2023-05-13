@@ -15,7 +15,7 @@ type MathComponentProps = {
   constants: Accessor<{}>;
 };
 
-const exclude = ["ExponentialE", "Pi"];
+const exclude = ["ExponentialE", "Pi", "Nothing"];
 
 /**
  * MathComponent, high-level wrapper on the input and display components to
