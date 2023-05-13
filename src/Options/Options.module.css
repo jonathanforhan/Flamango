@@ -15,6 +15,7 @@
 
 .AddSubButton {
   width: 3em;
+  height: full;
   background-color: var(--bg-accent-color);
   border: 1px solid #aaa;
   border-radius: 2px;
