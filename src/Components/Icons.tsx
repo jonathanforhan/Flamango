@@ -50,35 +50,25 @@ export const Minus = () => {
     <svg
       class={styles.Icon}
       xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
       viewBox="0 0 24 24"
     >
-      <g
-        transform="translate(2,4.8) scale(0.8, 0.8)"
-        stroke="none"
-      >
-      <path d="M0 10h24v4h-24z"/>
+      <g transform="translate(2,4.8) scale(0.8, 0.8)" stroke="none">
+        <path d="M0 10h24v4h-24z" />
       </g>
     </svg>
-  )
-}
+  );
+};
 
 export const Plus = () => {
   return (
     <svg
       class={styles.Icon}
       xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
       viewBox="0 0 24 24"
     >
-      <g
-        transform="translate(2.000000,4.8) scale(0.8, 0.8)"
-        stroke="none"
-      >
-      <path d="M24 10h-10v-10h-4v10h-10v4h10v10h4v-10h10z"/>
+      <g transform="translate(2.000000,4.8) scale(0.8, 0.8)" stroke="none">
+        <path d="M24 10h-10v-10h-4v10h-10v4h10v10h4v-10h10z" />
       </g>
     </svg>
-  )
-}
+  );
+};

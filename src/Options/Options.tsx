@@ -15,11 +15,14 @@ import { Dropdown, DropdownMenu } from "../Components/Dropdown";
 
 import Config from "./Config";
 import { Constants, ConstantsDefault, ConstantsDisplay } from "./Constants";
+import MathEngine from "../Math/MathEngine";
+import { BoxedExpression } from "@cortex-js/compute-engine";
 
 type OptionsProps = Props & {
   setRounding: Setter<number>;
   setScientific: Setter<boolean>;
   setConstants: Setter<{}>;
+  mathEngine: MathEngine;
 };
 
 /**
@@ -31,6 +34,8 @@ const Options: Component<OptionsProps> = (props) => {
   const [constantActive, setConstantActive] = createSignal(false);
   const [constants, setConstantsLocal] = createSignal({});
   const [clear, setClear] = createSignal(false);
+
+  const mathEngine = props.mathEngine;
 
   createEffect(() => {
     props.setConstants(() => constants());
@@ -103,7 +108,9 @@ const Options: Component<OptionsProps> = (props) => {
                     setTimeout(() => setConstantActive(true));
                   }}
                 >
-                  {`${e[0]}=${e[1]}`}
+                  {`${e[0]}=${
+                    mathEngine.box(e[1] as BoxedExpression).simplify().latex
+                  }`}
                 </ConstantsDisplay>
               )}
             </For>

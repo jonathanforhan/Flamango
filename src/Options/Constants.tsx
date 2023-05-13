@@ -18,7 +18,6 @@ type ConstantsProps = Props & {
  */
 export const Constants: Component<ConstantsProps> = (props) => {
   const [mathJSON, setMathJSON] = createSignal(null as MathJSON);
-  const [clear, setClear] = createSignal("");
   const mathEngine = new MathEngine();
 
   const handleConstants = (json: MathJSON) => {

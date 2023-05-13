@@ -13,6 +13,7 @@ type MathComponentProps = {
   rounding: Accessor<number>;
   scientific: Accessor<boolean>;
   constants: Accessor<{}>;
+  mathEngine: MathEngine;
 };
 
 const exclude = ["ExponentialE", "Pi", "Nothing"];
@@ -26,8 +27,7 @@ const MathComponent: Component<MathComponentProps> = (props) => {
   const [output, setOutput] = createSignal([] as BoxedExpression[]);
   const [variables, setVariables] = createSignal({});
 
-  // Universal mathEngine passed to children to save on memory
-  const mathEngine = new MathEngine();
+  const mathEngine = props.mathEngine;
 
   createEffect(() => setOutput(mathEngine.createEquations(input())));
 

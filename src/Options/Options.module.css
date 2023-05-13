@@ -6,15 +6,15 @@
 }
 
 .Button {
-  width: 35px;
-  height: 35px;
+  width: 3em;
+  height: 3em;
   margin-bottom: 1em;
   background-color: var(--bg-accent-color);
   box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1);
 }
 
 .AddSubButton {
-  width: 2.51em;
+  width: 3em;
   background-color: var(--bg-accent-color);
   border: 1px solid #aaa;
   border-radius: 2px;
@@ -39,24 +39,23 @@
 .ConstantsDefault {
   background-color: var(--bg-accent-color);
   color: var(--fg-color);
-  width: 12.4em;
-  margin: 0 1em;
-  font-size: 1em;
+  width: 10.5em;
+  margin: 0 0.5em;
+  font-size: 1.2em;
 }
 
 .ConstantsDisplay {
   background-color: var(--bg-accent-color);
   color: var(--fg-color);
-  width: 10.22em;
-  height: 1.7em;
-  margin: 0 0 0 1.05em;
-  font-size: 1em;
+  width: 8.4em;
+  margin: 0 0 0 0.75em;
+  font-size: 1.2em;
 }
 
 .Constants {
   background-color: var(--bg-accent-color);
   color: var(--fg-color);
-  width: 12.8em;
-  margin: 0 0 0 1.3em;
-  font-size: 0.8em;
+  width: 10.1em;
+  margin: 0 0 0 0.9em;
+  font-size: 1em;
 }
