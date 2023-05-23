@@ -47,7 +47,7 @@ const App: Component = () => {
   ) {
     return (
       <div style={{ padding: "1em", position: "absolute", top: "40%" }}>
-        Flamango does not support mobile, please view on desktop
+        Flamango does not support mobile browsers, please view on desktop
       </div>
     );
   }
