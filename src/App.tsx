@@ -40,6 +40,18 @@ const App: Component = () => {
   // Universal mathEngine passed to children to save on memory
   const mathEngine = new MathEngine();
 
+  if (
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    )
+  ) {
+    return (
+      <div style={{ padding: "1em", position: "absolute", top: "40%" }}>
+        Flamango does not support mobile, please view on desktop
+      </div>
+    );
+  }
+
   return (
     <div class={styles.App}>
       <Header />
